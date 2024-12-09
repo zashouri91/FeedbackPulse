@@ -24,75 +24,94 @@ const LoadingFallback = () => (
   </div>
 );
 
-const publicRouter = createBrowserRouter([
+// Auth guard component
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingFallback />;
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Public route guard
+function RequireNoAuth({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingFallback />;
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+const router = createBrowserRouter([
+  // Public routes
   {
     path: '/',
     element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <LandingPage />
-      </Suspense>
+      <RequireNoAuth>
+        <Suspense fallback={<LoadingFallback />}>
+          <LandingPage />
+        </Suspense>
+      </RequireNoAuth>
     ),
     errorElement: <RouteErrorBoundary />,
   },
   {
     path: '/signup',
     element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <SignupPage />
-      </Suspense>
+      <RequireNoAuth>
+        <Suspense fallback={<LoadingFallback />}>
+          <SignupPage />
+        </Suspense>
+      </RequireNoAuth>
     ),
     errorElement: <RouteErrorBoundary />,
   },
   {
     path: '/reset-password',
     element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <ResetPasswordPage />
-      </Suspense>
+      <RequireNoAuth>
+        <Suspense fallback={<LoadingFallback />}>
+          <ResetPasswordPage />
+        </Suspense>
+      </RequireNoAuth>
     ),
     errorElement: <RouteErrorBoundary />,
   },
-  {
-    path: '/feedback',
-    element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <FeedbackPage />
-      </Suspense>
-    ),
-    errorElement: <RouteErrorBoundary />,
-  },
-  {
-    path: '/survey/:templateId',
-    element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <SurveyPage />
-      </Suspense>
-    ),
-    errorElement: <RouteErrorBoundary />,
-  },
-  {
-    path: '*',
-    element: <Navigate to="/" replace />,
-  },
-]);
-
-const privateRouter = createBrowserRouter([
+  // Protected routes
   {
     path: '/',
     element: (
-      <QueryErrorBoundary>
-        <AppLayout>
-          <Suspense fallback={<LoadingFallback />}>
-            <Outlet />
-          </Suspense>
-        </AppLayout>
-      </QueryErrorBoundary>
+      <RequireAuth>
+        <QueryErrorBoundary>
+          <AppLayout>
+            <Suspense fallback={<LoadingFallback />}>
+              <Outlet />
+            </Suspense>
+          </AppLayout>
+        </QueryErrorBoundary>
+      </RequireAuth>
     ),
     errorElement: <RouteErrorBoundary />,
     children: [
       {
-        index: true,
+        path: 'dashboard',
         element: <Dashboard />,
+      },
+      {
+        path: 'feedback',
+        element: <FeedbackPage />,
       },
       {
         path: 'management',
@@ -110,6 +129,10 @@ const privateRouter = createBrowserRouter([
         path: 'templates',
         element: <SurveyTemplatesPage />,
       },
+      {
+        path: 'survey/:id',
+        element: <SurveyPage />,
+      },
     ],
   },
   {
@@ -119,6 +142,11 @@ const privateRouter = createBrowserRouter([
 ]);
 
 export function Router() {
-  const { user } = useAuth();
-  return <RouterProvider router={user ? privateRouter : publicRouter} />;
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <LoadingFallback />;
+  }
+
+  return <RouterProvider router={router} />;
 }

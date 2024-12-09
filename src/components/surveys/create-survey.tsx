@@ -71,7 +71,10 @@ export function CreateSurvey() {
   };
 
   return (
-    <PermissionGate permission={{ action: 'create', subject: 'survey' }}>
+    <PermissionGate
+      requiredPermissions={[{ action: 'create', subject: 'survey' }]}
+      requireAll={true}
+    >
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button>

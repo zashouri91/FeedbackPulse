@@ -10,7 +10,7 @@ interface PermissionGateProps {
   /**
    * The permissions required to access the content.
    */
-  requiredPermissions: string[];
+  requiredPermissions: Permission[];
   /**
    * Whether all permissions are required (AND) or just one (OR).
    */
@@ -33,7 +33,11 @@ export function PermissionGate({
 }: PermissionGateProps) {
   const { user } = useAuth();
 
-  if (!requiredPermissions.every(permission => hasPermission(user, permission as Permission))) {
+  const hasRequiredPermissions = requireAll
+    ? requiredPermissions.every(permission => hasPermission(user, permission))
+    : requiredPermissions.some(permission => hasPermission(user, permission));
+
+  if (!hasRequiredPermissions) {
     return (
       fallback || (
         <ErrorCard
