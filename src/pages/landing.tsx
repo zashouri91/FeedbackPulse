@@ -1,7 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MailIcon, LockIcon, ArrowRightIcon, BarChart3Icon, UsersIcon, LineChartIcon } from 'lucide-react';
+import {
+  MailIcon,
+  LockIcon,
+  ArrowRightIcon,
+  BarChart3Icon,
+  UsersIcon,
+  LineChartIcon,
+} from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,8 +22,12 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-export function LandingPage() {
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
+export default function LandingPage() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
 
@@ -40,7 +51,8 @@ export function LandingPage() {
               FeedbackPulse
             </h1>
             <p className="text-xl text-muted-foreground mb-8">
-              One-click feedback system that helps you collect and analyze customer satisfaction in real-time.
+              One-click feedback system that helps you collect and analyze customer satisfaction in
+              real-time.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               <div className="flex items-start space-x-3">
@@ -95,9 +107,7 @@ export function LandingPage() {
                   />
                   <MailIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
-                )}
+                {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
               </div>
 
               <div className="space-y-2">

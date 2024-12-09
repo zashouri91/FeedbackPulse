@@ -1,49 +1,73 @@
+import { Suspense, lazy } from 'react';
 import { useAuth } from './auth-provider';
-import { LandingPage } from '@/pages/landing';
-import { SignupPage } from '@/pages/auth/signup';
-import { ResetPasswordPage } from '@/pages/auth/reset-password';
-import { Dashboard } from '@/pages/dashboard';
-import { FeedbackPage } from '@/pages/feedback';
-import { ManagementPage } from '@/pages/management';
-import { AnalyticsPage } from '@/pages/analytics';
-import { SettingsPage } from '@/pages/settings';
-import { AppLayout } from '@/components/layout/app-layout';
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { RouteErrorBoundary } from '@/components/error-boundary/route-error-boundary';
 import { QueryErrorBoundary } from '@/components/error-boundary/query-error-boundary';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import SurveyTemplatesPage from '@/pages/survey-templates';
-import { SurveyPage } from '@/components/surveys/survey-page';
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Navigate,
-  Outlet,
-} from 'react-router-dom';
+import { AppLayout } from '@/components/layout/app-layout';
+
+// Lazy load all pages
+const LandingPage = lazy(() => import('@/pages/landing'));
+const SignupPage = lazy(() => import('@/pages/auth/signup'));
+const ResetPasswordPage = lazy(() => import('@/pages/auth/reset-password'));
+const Dashboard = lazy(() => import('@/pages/dashboard'));
+const FeedbackPage = lazy(() => import('@/pages/feedback'));
+const ManagementPage = lazy(() => import('@/pages/management'));
+const AnalyticsPage = lazy(() => import('@/pages/analytics'));
+const SettingsPage = lazy(() => import('@/pages/settings'));
+const SurveyTemplatesPage = lazy(() => import('@/pages/survey-templates'));
+const SurveyPage = lazy(() => import('@/components/surveys/survey-page'));
+
+const LoadingFallback = () => (
+  <div className="flex h-screen items-center justify-center">
+    <LoadingSpinner size="lg" />
+  </div>
+);
 
 const publicRouter = createBrowserRouter([
   {
     path: '/',
-    element: <LandingPage />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <LandingPage />
+      </Suspense>
+    ),
     errorElement: <RouteErrorBoundary />,
   },
   {
     path: '/signup',
-    element: <SignupPage />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <SignupPage />
+      </Suspense>
+    ),
     errorElement: <RouteErrorBoundary />,
   },
   {
     path: '/reset-password',
-    element: <ResetPasswordPage />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <ResetPasswordPage />
+      </Suspense>
+    ),
     errorElement: <RouteErrorBoundary />,
   },
   {
     path: '/feedback',
-    element: <FeedbackPage />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <FeedbackPage />
+      </Suspense>
+    ),
     errorElement: <RouteErrorBoundary />,
   },
   {
     path: '/survey/:templateId',
-    element: <SurveyPage />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <SurveyPage />
+      </Suspense>
+    ),
     errorElement: <RouteErrorBoundary />,
   },
   {
@@ -58,7 +82,9 @@ const privateRouter = createBrowserRouter([
     element: (
       <QueryErrorBoundary>
         <AppLayout>
-          <Outlet />
+          <Suspense fallback={<LoadingFallback />}>
+            <Outlet />
+          </Suspense>
         </AppLayout>
       </QueryErrorBoundary>
     ),
@@ -93,15 +119,6 @@ const privateRouter = createBrowserRouter([
 ]);
 
 export function Router() {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="h-screen grid place-items-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
+  const { user } = useAuth();
   return <RouterProvider router={user ? privateRouter : publicRouter} />;
 }

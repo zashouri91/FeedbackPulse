@@ -5,7 +5,11 @@ type ExportFormat = 'csv' | 'excel' | 'pdf';
 
 export function useExport() {
   return useMutation({
-    mutationFn: async ({ data, format, filename }: {
+    mutationFn: async ({
+      data,
+      format,
+      filename,
+    }: {
       data: any[];
       format: ExportFormat;
       filename?: string;

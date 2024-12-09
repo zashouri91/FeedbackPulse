@@ -23,26 +23,23 @@ interface RoleSelectProps {
 
 export function RoleSelect({ value, onChange, disabled }: RoleSelectProps) {
   const { hasRole } = usePermissions();
-  const canAssignRole = (role: Role) => hasRole('super_admin') || 
-    (hasRole('admin') && role !== 'super_admin');
+  const canAssignRole = (role: Role) =>
+    hasRole('super_admin') || (hasRole('admin') && role !== 'super_admin');
 
   return (
-    <Select
-      value={value}
-      onValueChange={onChange as (value: string) => void}
-      disabled={disabled}
-    >
+    <Select value={value} onValueChange={onChange as (value: string) => void} disabled={disabled}>
       <SelectTrigger>
         <SelectValue placeholder="Select role" />
       </SelectTrigger>
       <SelectContent>
-        {roles.map((role) => (
-          canAssignRole(role.value) && (
-            <SelectItem key={role.value} value={role.value}>
-              {role.label}
-            </SelectItem>
-          )
-        ))}
+        {roles.map(
+          role =>
+            canAssignRole(role.value) && (
+              <SelectItem key={role.value} value={role.value}>
+                {role.label}
+              </SelectItem>
+            )
+        )}
       </SelectContent>
     </Select>
   );

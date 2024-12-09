@@ -8,12 +8,15 @@ export function useUsers() {
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
-    queryFn: api.getUsers,
+    queryFn: async () => {
+      const data = await api.getUsers();
+      return data || [];
+    },
   });
 
   const createUser = useMutation({
     mutationFn: api.createUser,
-    onSuccess: (result) => {
+    onSuccess: result => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('User created successfully', {
         description: `Temporary password: ${result.tempPassword}`,

@@ -17,7 +17,7 @@ export function RouteErrorBoundary() {
               <RefreshCwIcon className="h-4 w-4 mr-2" />
               Try Again
             </Button>
-            <Button onClick={() => window.location.href = '/'}>
+            <Button onClick={() => (window.location.href = '/')}>
               <HomeIcon className="h-4 w-4 mr-2" />
               Go Home
             </Button>

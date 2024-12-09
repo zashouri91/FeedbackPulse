@@ -42,31 +42,27 @@ export function TemplateList() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Survey Templates</h3>
-        <Button onClick={() => {
-          setEditingTemplate(null);
-          setEditorOpen(true);
-        }}>
+        <Button
+          onClick={() => {
+            setEditingTemplate(null);
+            setEditorOpen(true);
+          }}
+        >
           <PlusIcon className="h-4 w-4 mr-2" />
           New Template
         </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        {templates.map((template) => (
+        {templates.map(template => (
           <Card key={template.id} className="p-4">
             <div className="flex justify-between items-start mb-2">
               <div>
                 <h4 className="font-medium">{template.name}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {template.description}
-                </p>
+                <p className="text-sm text-muted-foreground">{template.description}</p>
               </div>
               <div className="flex space-x-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleEdit(template)}
-                >
+                <Button variant="ghost" size="icon" onClick={() => handleEdit(template)}>
                   <Pencil2Icon className="h-4 w-4" />
                 </Button>
                 <AlertDialog>
@@ -79,15 +75,12 @@ export function TemplateList() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete Template</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to delete this template? This action
-                        cannot be undone.
+                        Are you sure you want to delete this template? This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDelete(template.id)}
-                      >
+                      <AlertDialogAction onClick={() => handleDelete(template.id)}>
                         Delete
                       </AlertDialogAction>
                     </AlertDialogFooter>

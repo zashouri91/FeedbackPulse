@@ -9,12 +9,14 @@ export async function getUsers() {
     // Use supabaseAdmin to bypass RLS and get all users
     const { data, error } = await supabaseAdmin
       .from('users')
-      .select(`
+      .select(
+        `
         *,
         location:locations(name)
-      `)
+      `
+      )
       .order('email');
-    
+
     if (error) throw error;
     return data;
   } catch (error) {
@@ -34,8 +36,11 @@ export async function createUser(data: {
 }) {
   try {
     // Get user from regular client to ensure we have an authenticated user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
     if (userError) throw new Error(`Failed to get user: ${userError.message}`);
     if (!user) throw new Error('No authenticated user');
     if (!user.id) throw new Error('User ID is missing');
@@ -50,7 +55,7 @@ export async function createUser(data: {
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       email_confirm: true,
-      user_metadata: { role: data.role }
+      user_metadata: { role: data.role },
     });
 
     if (authError) throw authError;
@@ -70,7 +75,7 @@ export async function createUser(data: {
         location_id: data.location_id,
         groups: data.groups,
         created_at: timestamp,
-        updated_at: timestamp
+        updated_at: timestamp,
       })
       .select()
       .single();
@@ -83,7 +88,7 @@ export async function createUser(data: {
 
     return {
       ...dbUser,
-      tempPassword: authUser.user.email // In a real app, you'd generate a random password
+      tempPassword: authUser.user.email, // In a real app, you'd generate a random password
     };
   } catch (error) {
     console.error('Error in createUser:', error);
@@ -91,19 +96,25 @@ export async function createUser(data: {
   }
 }
 
-export async function updateUser(id: string, data: {
-  email?: string;
-  first_name?: string;
-  last_name?: string;
-  phone_number?: string;
-  role?: string;
-  location_id?: string;
-  groups?: string[];
-}) {
+export async function updateUser(
+  id: string,
+  data: {
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+    phone_number?: string;
+    role?: string;
+    location_id?: string;
+    groups?: string[];
+  }
+) {
   try {
     // Get user from regular client
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
     if (userError) throw new Error(`Failed to get user: ${userError.message}`);
     if (!user) throw new Error('No authenticated user');
     if (!user.id) throw new Error('User ID is missing');
@@ -117,7 +128,7 @@ export async function updateUser(id: string, data: {
     const timestamp = new Date().toISOString();
     const updates = {
       ...data,
-      updated_at: timestamp
+      updated_at: timestamp,
     };
 
     // Update auth user if email or role changed
@@ -126,10 +137,7 @@ export async function updateUser(id: string, data: {
       if (data.email) authUpdates.email = data.email;
       if (data.role) authUpdates.user_metadata = { role: data.role };
 
-      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-        id,
-        authUpdates
-      );
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(id, authUpdates);
 
       if (authError) throw authError;
     }
@@ -154,8 +162,11 @@ export async function updateUser(id: string, data: {
 export async function deleteUser(id: string) {
   try {
     // Get user from regular client
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
     if (userError) throw new Error(`Failed to get user: ${userError.message}`);
     if (!user) throw new Error('No authenticated user');
     if (!user.id) throw new Error('User ID is missing');
@@ -167,13 +178,15 @@ export async function deleteUser(id: string) {
     }
 
     // Delete the user using database function that handles both deletion and audit logging
-    const { data: deletedUserData, error: deleteError } = await supabaseAdmin
-      .rpc('delete_user_with_audit', {
+    const { data: deletedUserData, error: deleteError } = await supabaseAdmin.rpc(
+      'delete_user_with_audit',
+      {
         user_id: id,
         audit_user_id: user.id,
         audit_user_email: user.email || '',
-        audit_user_role: userRole
-      });
+        audit_user_role: userRole,
+      }
+    );
 
     if (deleteError) {
       console.error('User deletion error:', deleteError);
@@ -189,11 +202,10 @@ export async function deleteUser(id: string) {
 
 export async function getAssignableUsers(groupId: string, locationId: string) {
   try {
-    const { data, error } = await supabase
-      .rpc('get_assignable_users', {
-        p_group_id: groupId,
-        p_location_id: locationId
-      });
+    const { data, error } = await supabase.rpc('get_assignable_users', {
+      p_group_id: groupId,
+      p_location_id: locationId,
+    });
 
     if (error) {
       console.error('Error loading assignees:', error);

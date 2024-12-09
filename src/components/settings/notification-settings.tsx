@@ -22,9 +22,7 @@ export function NotificationSettings() {
           </div>
           <Switch
             defaultChecked
-            onCheckedChange={(checked) =>
-              handleChange('email_notifications', checked)
-            }
+            onCheckedChange={checked => handleChange('email_notifications', checked)}
           />
         </div>
         <Separator />
@@ -37,9 +35,7 @@ export function NotificationSettings() {
           </div>
           <Switch
             defaultChecked
-            onCheckedChange={(checked) =>
-              handleChange('survey_notifications', checked)
-            }
+            onCheckedChange={checked => handleChange('survey_notifications', checked)}
           />
         </div>
         <Separator />
@@ -52,9 +48,7 @@ export function NotificationSettings() {
           </div>
           <Switch
             defaultChecked
-            onCheckedChange={(checked) =>
-              handleChange('weekly_summary', checked)
-            }
+            onCheckedChange={checked => handleChange('weekly_summary', checked)}
           />
         </div>
       </div>

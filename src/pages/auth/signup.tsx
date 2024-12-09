@@ -13,52 +13,60 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useAuthActions } from '@/lib/hooks/use-auth';
-import { MailIcon, LockIcon, ArrowRightIcon } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/components/auth-provider';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
-  path: ["confirmPassword"],
+  path: ['confirmPassword'],
 });
 
 type SignupForm = z.infer<typeof signupSchema>;
 
-export function SignupPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signUp } = useAuthActions();
+export default function SignupPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
   });
 
   const onSubmit = async (data: SignupForm) => {
     try {
-      setIsSubmitting(true);
+      setIsLoading(true);
       await signUp(data.email, data.password);
+      toast.success('Account created successfully');
       navigate('/');
+    } catch (error) {
+      toast.error('Failed to create account');
+      console.error(error);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">Create an Account</h1>
-          <p className="text-muted-foreground">
-            Sign up to start collecting feedback
-          </p>
-        </div>
-
+    <div className="min-h-screen grid place-items-center bg-background p-4">
+      <Card className="w-full max-w-md p-6">
+        <h1 className="text-2xl font-bold mb-6">Create an Account</h1>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="email"
@@ -66,21 +74,16 @@ export function SignupPage() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="name@company.com"
-                        className="pl-10"
-                      />
-                      <MailIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                    </div>
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="password"
@@ -88,21 +91,16 @@ export function SignupPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                      />
-                      <LockIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                    </div>
+                    <Input
+                      type="password"
+                      placeholder="Enter your password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="confirmPassword"
@@ -110,37 +108,31 @@ export function SignupPage() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                      />
-                      <LockIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                    </div>
+                    <Input
+                      type="password"
+                      placeholder="Confirm your password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              Create Account
-              <ArrowRightIcon className="ml-2 h-4 w-4" />
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Creating Account...' : 'Sign Up'}
             </Button>
-
-            <div className="text-center text-sm">
-              Already have an account?{' '}
-              <Link
-                to="/"
-                className="text-primary hover:underline font-medium"
-              >
-                Sign in
-              </Link>
-            </div>
           </form>
         </Form>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Button
+            variant="link"
+            className="p-0 h-auto"
+            onClick={() => navigate('/')}
+          >
+            Sign in
+          </Button>
+        </p>
       </Card>
     </div>
   );

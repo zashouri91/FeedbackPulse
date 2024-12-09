@@ -6,11 +6,8 @@ import { createAuditLog } from './audit-logs';
 type Location = Database['public']['Tables']['locations']['Row'];
 
 export async function getLocations() {
-  const { data, error } = await supabase
-    .from('locations')
-    .select('*')
-    .order('name');
-  
+  const { data, error } = await supabase.from('locations').select('*').order('name');
+
   if (error) throw error;
   return data as Location[];
 }
@@ -18,8 +15,11 @@ export async function getLocations() {
 export async function createLocation(data: { name: string; managers: string[] }) {
   try {
     // Get user from regular client to ensure we have an authenticated user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
     if (userError) throw new Error(`Failed to get user: ${userError.message}`);
     if (!user) throw new Error('No authenticated user');
     if (!user.id) throw new Error('User ID is missing');
@@ -31,14 +31,16 @@ export async function createLocation(data: { name: string; managers: string[] })
     }
 
     // Create the location using a database function that handles both location creation and audit logging
-    const { data: locationData, error: locationError } = await supabaseAdmin
-      .rpc('create_location_with_audit', {
+    const { data: locationData, error: locationError } = await supabaseAdmin.rpc(
+      'create_location_with_audit',
+      {
         location_name: data.name,
         location_managers: data.managers,
         audit_user_id: user.id,
         audit_user_email: user.email || '',
-        audit_user_role: userRole
-      });
+        audit_user_role: userRole,
+      }
+    );
 
     if (locationError) {
       console.error('Location creation error:', locationError);
@@ -55,8 +57,11 @@ export async function createLocation(data: { name: string; managers: string[] })
 export async function updateLocation(id: string, data: Partial<Location>) {
   try {
     // Get user from regular client
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
     if (userError) throw new Error(`Failed to get user: ${userError.message}`);
     if (!user) throw new Error('No authenticated user');
     if (!user.id) throw new Error('User ID is missing');
@@ -70,18 +75,20 @@ export async function updateLocation(id: string, data: Partial<Location>) {
     // Ensure managers is an array if it exists
     const locationData = {
       ...data,
-      managers: Array.isArray(data.managers) ? data.managers : []
+      managers: Array.isArray(data.managers) ? data.managers : [],
     };
 
     // Update the location using database function that handles both update and audit logging
-    const { data: updatedLocationData, error: locationError } = await supabaseAdmin
-      .rpc('update_location_with_audit', {
+    const { data: updatedLocationData, error: locationError } = await supabaseAdmin.rpc(
+      'update_location_with_audit',
+      {
         location_id: id,
         location_data: locationData,
         audit_user_id: user.id,
         audit_user_email: user.email || '',
-        audit_user_role: userRole
-      });
+        audit_user_role: userRole,
+      }
+    );
 
     if (locationError) {
       console.error('Location update error:', locationError);
@@ -98,8 +105,11 @@ export async function updateLocation(id: string, data: Partial<Location>) {
 export async function deleteLocation(id: string) {
   try {
     // Get user from regular client
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
     if (userError) throw new Error(`Failed to get user: ${userError.message}`);
     if (!user) throw new Error('No authenticated user');
     if (!user.id) throw new Error('User ID is missing');
@@ -111,13 +121,15 @@ export async function deleteLocation(id: string) {
     }
 
     // Delete the location using database function that handles both deletion and audit logging
-    const { data: locationData, error: locationError } = await supabaseAdmin
-      .rpc('delete_location_with_audit', {
+    const { data: locationData, error: locationError } = await supabaseAdmin.rpc(
+      'delete_location_with_audit',
+      {
         location_id: id,
         audit_user_id: user.id,
         audit_user_email: user.email || '',
-        audit_user_role: userRole
-      });
+        audit_user_role: userRole,
+      }
+    );
 
     if (locationError) {
       console.error('Location deletion error:', locationError);

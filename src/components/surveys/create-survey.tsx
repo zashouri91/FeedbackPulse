@@ -3,14 +3,33 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { PlusIcon } from 'lucide-react';
 import { useSurveys } from '@/lib/hooks/use-surveys';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { PermissionGate } from '@/components/auth/permission-gate';
 import { useSurveySelectors } from '@/lib/hooks/use-survey-selectors';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const surveySchema = z.object({
   assignee_id: z.string().min(1, 'Assignee is required'),
@@ -31,9 +50,9 @@ export function CreateSurvey() {
     selectedLocations,
     handleGroupsChange,
     handleLocationsChange,
-    loading
+    loading,
   } = useSurveySelectors();
-  
+
   const form = useForm<SurveyForm>({
     resolver: zodResolver(surveySchema),
     defaultValues: {
@@ -74,7 +93,7 @@ export function CreateSurvey() {
                     <FormLabel>Group</FormLabel>
                     <Select
                       disabled={loading}
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         field.onChange(value);
                         handleGroupsChange([value]);
                       }}
@@ -86,7 +105,7 @@ export function CreateSurvey() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {groups.map((group) => (
+                        {groups.map(group => (
                           <SelectItem key={group.id} value={group.id}>
                             {group.name}
                           </SelectItem>
@@ -105,7 +124,7 @@ export function CreateSurvey() {
                     <FormLabel>Location</FormLabel>
                     <Select
                       disabled={!selectedGroups.length || loading}
-                      onValueChange={(value) => {
+                      onValueChange={value => {
                         field.onChange(value);
                         handleLocationsChange([value]);
                       }}
@@ -117,7 +136,7 @@ export function CreateSurvey() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {locations.map((location) => (
+                        {locations.map(location => (
                           <SelectItem key={location.id} value={location.id}>
                             {location.name}
                           </SelectItem>
@@ -145,7 +164,7 @@ export function CreateSurvey() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {assignees.map((assignee) => (
+                        {assignees.map(assignee => (
                           <SelectItem key={assignee.id} value={assignee.id}>
                             {assignee.first_name} {assignee.last_name}
                           </SelectItem>
@@ -157,12 +176,15 @@ export function CreateSurvey() {
                 )}
               />
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => {
-                  setOpen(false);
-                  form.reset();
-                  handleGroupsChange([]);
-                  handleLocationsChange([]);
-                }}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setOpen(false);
+                    form.reset();
+                    handleGroupsChange([]);
+                    handleLocationsChange([]);
+                  }}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={createSurvey.isPending || loading}>

@@ -26,7 +26,7 @@ const PAGE_SIZE = 10;
 export function AuditLogViewer() {
   const [page, setPage] = useState(0);
   const [selectedAction, setSelectedAction] = useState<string | undefined>();
-  
+
   const { logs, isLoading } = useAuditLogs({
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
@@ -49,10 +49,7 @@ export function AuditLogViewer() {
     <Card className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold">Audit Logs</h2>
-        <Select
-          value={selectedAction}
-          onValueChange={setSelectedAction}
-        >
+        <Select value={selectedAction} onValueChange={setSelectedAction}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Filter by action" />
           </SelectTrigger>
@@ -77,32 +74,22 @@ export function AuditLogViewer() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {logs.map((log) => (
+          {logs.map(log => (
             <TableRow key={log.id}>
-              <TableCell className="whitespace-nowrap">
-                {formatDateTime(log.created_at)}
-              </TableCell>
+              <TableCell className="whitespace-nowrap">{formatDateTime(log.created_at)}</TableCell>
               <TableCell>
                 <Badge
-                  className={
-                    actionColor[
-                      log.action.split('.')[1] as keyof typeof actionColor
-                    ]
-                  }
+                  className={actionColor[log.action.split('.')[1] as keyof typeof actionColor]}
                 >
                   {log.action}
                 </Badge>
               </TableCell>
               <TableCell>{log.user_email}</TableCell>
               <TableCell>
-                <Badge variant="outline">
-                  {log.user_role}
-                </Badge>
+                <Badge variant="outline">{log.user_role}</Badge>
               </TableCell>
               <TableCell>
-                <pre className="text-sm">
-                  {JSON.stringify(log.details, null, 2)}
-                </pre>
+                <pre className="text-sm">{JSON.stringify(log.details, null, 2)}</pre>
               </TableCell>
             </TableRow>
           ))}
@@ -112,18 +99,16 @@ export function AuditLogViewer() {
       <div className="flex justify-between items-center mt-4">
         <Button
           variant="outline"
-          onClick={() => setPage((p) => Math.max(0, p - 1))}
+          onClick={() => setPage(p => Math.max(0, p - 1))}
           disabled={page === 0}
         >
           <ChevronLeftIcon className="h-4 w-4 mr-2" />
           Previous
         </Button>
-        <span className="text-sm text-muted-foreground">
-          Page {page + 1}
-        </span>
+        <span className="text-sm text-muted-foreground">Page {page + 1}</span>
         <Button
           variant="outline"
-          onClick={() => setPage((p) => p + 1)}
+          onClick={() => setPage(p => p + 1)}
           disabled={logs.length < PAGE_SIZE}
         >
           Next

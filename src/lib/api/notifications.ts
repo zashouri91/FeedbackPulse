@@ -8,17 +8,14 @@ export async function getNotifications() {
     .from('notifications')
     .select('*')
     .order('created_at', { ascending: false });
-  
+
   if (error) throw error;
   return data as Notification[];
 }
 
 export async function markNotificationAsRead(id: string) {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ read: true })
-    .eq('id', id);
-  
+  const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id);
+
   if (error) throw error;
 }
 
@@ -27,11 +24,13 @@ export async function createNotification(data: {
   message: string;
   user_id: string;
 }) {
-  const { error } = await supabase.from('notifications').insert([{
-    ...data,
-    read: false,
-    created_at: new Date().toISOString(),
-  }]);
-  
+  const { error } = await supabase.from('notifications').insert([
+    {
+      ...data,
+      read: false,
+      created_at: new Date().toISOString(),
+    },
+  ]);
+
   if (error) throw error;
 }

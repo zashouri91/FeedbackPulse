@@ -21,16 +21,14 @@ interface ResponseTrendChartProps {
 export function ResponseTrendChart({ data, title }: ResponseTrendChartProps) {
   return (
     <Card className="p-6">
-      {title && (
-        <h3 className="text-lg font-semibold mb-4">{title}</h3>
-      )}
+      {title && <h3 className="text-lg font-semibold mb-4">{title}</h3>}
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
-              tickFormatter={(value) => format(new Date(value), 'MMM d')}
+              tickFormatter={value => format(new Date(value), 'MMM d')}
               height={50}
               tick={{ fontSize: 12 }}
               tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
@@ -44,7 +42,7 @@ export function ResponseTrendChart({ data, title }: ResponseTrendChartProps) {
               axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
             />
             <Tooltip
-              labelFormatter={(value) => format(new Date(value), 'PPP')}
+              labelFormatter={value => format(new Date(value), 'PPP')}
               formatter={(value: number) => [value, 'Responses']}
               contentStyle={{
                 backgroundColor: 'hsl(var(--background))',

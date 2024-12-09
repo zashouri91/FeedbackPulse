@@ -32,11 +32,7 @@ export function FeedbackForm({ surveyId }: FeedbackFormProps) {
         </p>
       </div>
 
-      <EmojiRating
-        value={rating}
-        onChange={setRating}
-        disabled={isPending}
-      />
+      <EmojiRating value={rating} onChange={setRating} disabled={isPending} />
 
       <div className="mt-12 text-center">
         <Button

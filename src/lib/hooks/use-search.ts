@@ -17,11 +17,9 @@ export function useSearch<T extends Record<string, any>>({
     return (items: T[]): T[] => {
       if (!debouncedSearchTerm) return items;
 
-      return items.filter((item) =>
-        searchFields.some((field) =>
-          String(item[field])
-            .toLowerCase()
-            .includes(debouncedSearchTerm.toLowerCase())
+      return items.filter(item =>
+        searchFields.some(field =>
+          String(item[field]).toLowerCase().includes(debouncedSearchTerm.toLowerCase())
         )
       );
     };

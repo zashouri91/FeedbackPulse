@@ -8,9 +8,12 @@ type Location = Database['public']['Tables']['locations']['Row'];
 export function useLocations() {
   const queryClient = useQueryClient();
 
-  const locationsQuery = useQuery({
+  const { data: locations = [], isLoading } = useQuery({
     queryKey: ['locations'],
-    queryFn: api.getLocations,
+    queryFn: async () => {
+      const data = await api.getLocations();
+      return data || [];
+    },
   });
 
   const createLocation = useMutation({
@@ -55,8 +58,8 @@ export function useLocations() {
   });
 
   return {
-    locations: locationsQuery.data ?? [],
-    isLoading: locationsQuery.isLoading,
+    locations,
+    isLoading,
     createLocation,
     updateLocation,
     deleteLocation,

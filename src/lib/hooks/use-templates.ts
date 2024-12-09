@@ -14,17 +14,17 @@ export function useTemplates() {
   // Set up real-time subscription
   useRealtimeSubscription({
     table: 'templates',
-    onInsert: (template) => {
+    onInsert: template => {
       queryClient.setQueryData(['templates'], (old: any[]) => [...old, template]);
     },
-    onUpdate: (template) => {
+    onUpdate: template => {
       queryClient.setQueryData(['templates'], (old: any[]) =>
-        old.map((t) => (t.id === template.id ? template : t))
+        old.map(t => (t.id === template.id ? template : t))
       );
     },
-    onDelete: (template) => {
+    onDelete: template => {
       queryClient.setQueryData(['templates'], (old: any[]) =>
-        old.filter((t) => t.id !== template.id)
+        old.filter(t => t.id !== template.id)
       );
     },
   });

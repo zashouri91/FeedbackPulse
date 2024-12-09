@@ -43,8 +43,7 @@ export function LocationsTable() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const { locations, isLoading, createLocation, updateLocation, deleteLocation } =
-    useLocations();
+  const { locations, isLoading, createLocation, updateLocation, deleteLocation } = useLocations();
 
   const form = useForm<LocationForm>({
     resolver: zodResolver(locationSchema),
@@ -73,7 +72,7 @@ export function LocationsTable() {
     }
   };
 
-  const handleEdit = (location: typeof locations[0]) => {
+  const handleEdit = (location: (typeof locations)[0]) => {
     setEditingId(location.id);
     form.reset({
       name: location.name,
@@ -83,25 +82,19 @@ export function LocationsTable() {
   };
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedIds(checked ? locations.map((location) => location.id) : []);
+    setSelectedIds(checked ? locations.map(location => location.id) : []);
   };
 
   const handleSelect = (id: string, checked: boolean) => {
-    setSelectedIds((prev) =>
-      checked ? [...prev, id] : prev.filter((i) => i !== id)
-    );
+    setSelectedIds(prev => (checked ? [...prev, id] : prev.filter(i => i !== id)));
   };
 
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return;
 
-    if (
-      confirm(`Are you sure you want to delete ${selectedIds.length} locations?`)
-    ) {
+    if (confirm(`Are you sure you want to delete ${selectedIds.length} locations?`)) {
       try {
-        await Promise.all(
-          selectedIds.map((id) => deleteLocation.mutateAsync(id))
-        );
+        await Promise.all(selectedIds.map(id => deleteLocation.mutateAsync(id)));
         setSelectedIds([]);
         toast.success(`Successfully deleted ${selectedIds.length} locations`);
       } catch (error) {
@@ -127,23 +120,21 @@ export function LocationsTable() {
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-semibold">Locations</h2>
           {selectedIds.length > 0 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDeleteSelected}
-              className="h-8"
-            >
+            <Button variant="destructive" size="sm" onClick={handleDeleteSelected} className="h-8">
               Delete Selected ({selectedIds.length})
             </Button>
           )}
         </div>
-        <Dialog open={open} onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            handleClose();
-          } else {
-            setOpen(true);
-          }
-        }}>
+        <Dialog
+          open={open}
+          onOpenChange={isOpen => {
+            if (!isOpen) {
+              handleClose();
+            } else {
+              setOpen(true);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button>
               <PlusIcon className="h-4 w-4 mr-2" />
@@ -152,9 +143,7 @@ export function LocationsTable() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {editingId ? 'Edit Location' : 'Add Location'}
-              </DialogTitle>
+              <DialogTitle>{editingId ? 'Edit Location' : 'Add Location'}</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -172,11 +161,7 @@ export function LocationsTable() {
                   )}
                 />
                 <div className="flex justify-end space-x-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleClose}
-                  >
+                  <Button type="button" variant="outline" onClick={handleClose}>
                     Cancel
                   </Button>
                   <Button type="submit">Save</Button>
@@ -203,12 +188,12 @@ export function LocationsTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {locations.map((location) => (
+          {locations.map(location => (
             <TableRow key={location.id}>
               <TableCell>
                 <Checkbox
                   checked={selectedIds.includes(location.id)}
-                  onCheckedChange={(checked) => handleSelect(location.id, !!checked)}
+                  onCheckedChange={checked => handleSelect(location.id, !!checked)}
                   aria-label={`Select ${location.name}`}
                 />
               </TableCell>

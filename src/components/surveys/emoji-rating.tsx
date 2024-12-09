@@ -1,12 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  FrownIcon,
-  MehIcon,
-  SmileIcon,
-  HeartIcon,
-  XCircleIcon,
-} from 'lucide-react';
+import { FrownIcon, MehIcon, SmileIcon, HeartIcon, XCircleIcon } from 'lucide-react';
 
 const ratings = [
   { value: 1, icon: XCircleIcon, label: 'Very Dissatisfied', color: 'text-red-500' },
@@ -25,7 +19,7 @@ type EmojiRatingProps = {
 export function EmojiRating({ value, onChange, disabled }: EmojiRatingProps) {
   return (
     <div className="flex flex-wrap gap-4 justify-center">
-      {ratings.map((rating) => (
+      {ratings.map(rating => (
         <Button
           key={rating.value}
           variant="ghost"
@@ -34,7 +28,9 @@ export function EmojiRating({ value, onChange, disabled }: EmojiRatingProps) {
           onClick={() => onChange(rating.value)}
           className={cn(
             'flex flex-col items-center p-6 hover:bg-muted transition-all duration-200 rounded-xl',
-            value === rating.value ? 'scale-110 bg-primary text-primary-foreground hover:bg-primary/90' : rating.color,
+            value === rating.value
+              ? 'scale-110 bg-primary text-primary-foreground hover:bg-primary/90'
+              : rating.color,
             'hover:scale-105'
           )}
         >

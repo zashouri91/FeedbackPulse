@@ -13,13 +13,5 @@ export function LoadingSpinner({ size = 'md', className }: LoadingSpinnerProps) 
     lg: 'h-8 w-8',
   };
 
-  return (
-    <Loader2Icon
-      className={cn(
-        'animate-spin text-primary',
-        sizeClasses[size],
-        className
-      )}
-    />
-  );
+  return <Loader2Icon className={cn('animate-spin text-primary', sizeClasses[size], className)} />;
 }

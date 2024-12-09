@@ -15,9 +15,7 @@ const roleHierarchy: Record<Role, number> = {
 };
 
 const permissions: Record<Role, Permission[]> = {
-  super_admin: [
-    { action: '*', subject: '*' },
-  ],
+  super_admin: [{ action: '*', subject: '*' }],
   admin: [
     { action: 'create', subject: '*' },
     { action: 'read', subject: '*' },
@@ -41,22 +39,23 @@ const permissions: Record<Role, Permission[]> = {
 
 export function hasRole(user: User | null, requiredRole: Role): boolean {
   if (!user) return false;
-  
+
   const userRole = getUserRole(user);
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
 }
 
 export function hasPermission(user: User | null, permission: Permission): boolean {
   if (!user) return false;
-  
+
   const userRole = getUserRole(user);
   const userPermissions = permissions[userRole];
-  
-  return userPermissions.some(p => 
-    (p.action === '*' && p.subject === '*') ||
-    (p.action === '*' && p.subject === permission.subject) ||
-    (p.action === permission.action && p.subject === '*') ||
-    (p.action === permission.action && p.subject === permission.subject)
+
+  return userPermissions.some(
+    p =>
+      (p.action === '*' && p.subject === '*') ||
+      (p.action === '*' && p.subject === permission.subject) ||
+      (p.action === permission.action && p.subject === '*') ||
+      (p.action === permission.action && p.subject === permission.subject)
   );
 }
 

@@ -20,10 +20,7 @@ export function useNotifications() {
 
   const markAsRead = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', id);
+      const { error } = await supabase.from('notifications').update({ read: true }).eq('id', id);
 
       if (error) throw error;
     },

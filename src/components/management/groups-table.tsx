@@ -76,7 +76,7 @@ export function GroupsTable() {
     form.reset();
   };
 
-  const handleEdit = (group: typeof groups[0]) => {
+  const handleEdit = (group: (typeof groups)[0]) => {
     setEditingId(group.id);
     form.reset({
       name: group.name,
@@ -93,13 +93,11 @@ export function GroupsTable() {
   };
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedIds(checked ? groups.map((group) => group.id) : []);
+    setSelectedIds(checked ? groups.map(group => group.id) : []);
   };
 
   const handleSelect = (id: string, checked: boolean) => {
-    setSelectedIds((prev) =>
-      checked ? [...prev, id] : prev.filter((i) => i !== id)
-    );
+    setSelectedIds(prev => (checked ? [...prev, id] : prev.filter(i => i !== id)));
   };
 
   const handleDeleteSelected = async () => {
@@ -107,7 +105,7 @@ export function GroupsTable() {
 
     if (confirm(`Are you sure you want to delete ${selectedIds.length} groups?`)) {
       try {
-        await Promise.all(selectedIds.map((id) => deleteGroup.mutateAsync(id)));
+        await Promise.all(selectedIds.map(id => deleteGroup.mutateAsync(id)));
         setSelectedIds([]);
         toast.success(`Successfully deleted ${selectedIds.length} groups`);
       } catch (error) {
@@ -127,12 +125,7 @@ export function GroupsTable() {
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-semibold">Groups</h2>
           {selectedIds.length > 0 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDeleteSelected}
-              className="h-8"
-            >
+            <Button variant="destructive" size="sm" onClick={handleDeleteSelected} className="h-8">
               Delete Selected ({selectedIds.length})
             </Button>
           )}
@@ -169,17 +162,14 @@ export function GroupsTable() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Location</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select location" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {locations.map((location) => (
+                          {locations.map(location => (
                             <SelectItem key={location.id} value={location.id}>
                               {location.name}
                             </SelectItem>
@@ -196,17 +186,14 @@ export function GroupsTable() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Manager</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select manager" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {users.map((user) => (
+                          {users.map(user => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.email}
                             </SelectItem>
@@ -253,20 +240,18 @@ export function GroupsTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {groups.map((group) => (
+          {groups.map(group => (
             <TableRow key={group.id}>
               <TableCell>
                 <Checkbox
                   checked={selectedIds.includes(group.id)}
-                  onCheckedChange={(checked) => handleSelect(group.id, !!checked)}
+                  onCheckedChange={checked => handleSelect(group.id, !!checked)}
                   aria-label={`Select ${group.name}`}
                 />
               </TableCell>
               <TableCell>{group.name}</TableCell>
-              <TableCell>
-                {locations.find((l) => l.id === group.location_id)?.name}
-              </TableCell>
-              <TableCell>{users.find((u) => u.id === group.manager_id)?.email}</TableCell>
+              <TableCell>{locations.find(l => l.id === group.location_id)?.name}</TableCell>
+              <TableCell>{users.find(u => u.id === group.manager_id)?.email}</TableCell>
               <TableCell>
                 <div className="flex items-center justify-end gap-2">
                   <Button

@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { User } from '@supabase/supabase-js';
 
-export type AuditAction = 
+export type AuditAction =
   | 'user.created'
   | 'user.updated'
   | 'user.deleted'
@@ -24,14 +24,16 @@ export async function createAuditLog(data: {
   details: Record<string, any>;
 }) {
   // Use admin client to bypass RLS
-  const { error } = await supabaseAdmin.from('audit_logs').insert([{
-    action: data.action,
-    user_id: data.user.id,
-    user_email: data.user.email,
-    user_role: data.user.user_metadata?.role || 'user',
-    details: data.details,
-    created_at: new Date().toISOString(),
-  }]);
+  const { error } = await supabaseAdmin.from('audit_logs').insert([
+    {
+      action: data.action,
+      user_id: data.user.id,
+      user_email: data.user.email,
+      user_role: data.user.user_metadata?.role || 'user',
+      details: data.details,
+      created_at: new Date().toISOString(),
+    },
+  ]);
 
   if (error) {
     console.error('Error creating audit log:', error);

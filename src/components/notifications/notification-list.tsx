@@ -24,24 +24,18 @@ export function NotificationList() {
 
       <ScrollArea className="h-[400px]">
         {notifications.length === 0 ? (
-          <div className="p-4 text-center text-muted-foreground">
-            No notifications
-          </div>
+          <div className="p-4 text-center text-muted-foreground">No notifications</div>
         ) : (
           <div className="divide-y">
-            {notifications.map((notification) => (
+            {notifications.map(notification => (
               <div
                 key={notification.id}
-                className={`p-4 hover:bg-muted/50 ${
-                  !notification.read ? 'bg-muted/20' : ''
-                }`}
+                className={`p-4 hover:bg-muted/50 ${!notification.read ? 'bg-muted/20' : ''}`}
               >
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
                     <p className="text-sm font-medium">{notification.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {notification.message}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{notification.message}</p>
                     <p className="text-xs text-muted-foreground">
                       {format(new Date(notification.created_at), 'PPp')}
                     </p>

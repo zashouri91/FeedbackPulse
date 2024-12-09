@@ -8,9 +8,9 @@ export const surveySchema = z.object({
   scale_max: z.coerce.number().min(0).max(10),
   thank_you_message: z.string(),
   follow_up_message: z.string(),
-  assigned_users: z.array(z.string()).nullable().default([]),
-  assigned_groups: z.array(z.string()).nullable().default([]),
-  assigned_locations: z.array(z.string()).nullable().default([]),
+  assigned_users: z.array(z.string()).default([]),
+  assigned_groups: z.array(z.string()).default([]),
+  assigned_locations: z.array(z.string()).default([]),
 });
 
 export type SurveyForm = z.infer<typeof surveySchema>;

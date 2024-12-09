@@ -9,14 +9,9 @@ import { LocationPerformanceChart } from '@/components/charts/location-performan
 import { format, subDays } from 'date-fns';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorCard } from '@/components/ui/error-card';
-import {
-  BarChart3Icon,
-  TrendingUpIcon,
-  Users2Icon,
-  BuildingIcon,
-} from 'lucide-react';
+import { BarChart3Icon, TrendingUpIcon, Users2Icon, BuildingIcon } from 'lucide-react';
 
-export function AnalyticsPage() {
+export default function AnalyticsPage() {
   const { surveys, isLoading, error } = useSurveys();
 
   if (isLoading) {
@@ -37,58 +32,49 @@ export function AnalyticsPage() {
   }
 
   // Calculate metrics
-  const totalResponses = surveys.reduce(
-    (acc, survey) => acc + (survey.responses?.length || 0),
-    0
-  );
-  const averageNPS = calculateNPS(
-    surveys.flatMap((s) => s.responses?.map((r) => r.rating) || [])
-  );
+  const totalResponses = surveys.reduce((acc, survey) => acc + (survey.responses?.length || 0), 0);
+  const averageNPS = calculateNPS(surveys.flatMap(s => s.responses?.map(r => r.rating) || []));
   const responseRate = Math.round(
-    (surveys.filter((s) => s.responses?.length > 0).length / surveys.length) * 100
+    (surveys.filter(s => s.responses?.length > 0).length / surveys.length) * 100
   );
 
   // Prepare chart data
   const last30Days = Array.from({ length: 30 }, (_, i) => {
     const date = subDays(new Date(), i);
-    const responses = surveys.flatMap((s) =>
+    const responses = surveys.flatMap(s =>
       (s.responses || []).filter(
-        (r) => format(new Date(r.timestamp), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+        r => format(new Date(r.timestamp), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
       )
     );
     return {
       date: format(date, 'yyyy-MM-dd'),
       responses: responses.length,
-      nps: calculateNPS(responses.map((r) => r.rating)),
+      nps: calculateNPS(responses.map(r => r.rating)),
     };
   }).reverse();
 
   const ratingDistribution = Array.from({ length: 5 }, (_, i) => ({
     rating: i + 1,
-    count: surveys
-      .flatMap((s) => s.responses || [])
-      .filter((r) => r.rating === i + 1).length,
+    count: surveys.flatMap(s => s.responses || []).filter(r => r.rating === i + 1).length,
   }));
 
-  const locationPerformance = Array.from(
-    new Set(surveys.map((s) => s.location_id))
-  ).map((locationId) => {
-    const locationSurveys = surveys.filter((s) => s.location_id === locationId);
-    const responses = locationSurveys.flatMap((s) => s.responses || []);
-    return {
-      location: locationId,
-      responses: responses.length,
-      nps: calculateNPS(responses.map((r) => r.rating)),
-    };
-  });
+  const locationPerformance = Array.from(new Set(surveys.map(s => s.location_id))).map(
+    locationId => {
+      const locationSurveys = surveys.filter(s => s.location_id === locationId);
+      const responses = locationSurveys.flatMap(s => s.responses || []);
+      return {
+        location: locationId,
+        responses: responses.length,
+        nps: calculateNPS(responses.map(r => r.rating)),
+      };
+    }
+  );
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-3xl font-bold mb-2">Analytics</h2>
-        <p className="text-muted-foreground">
-          Track your feedback performance and trends
-        </p>
+        <p className="text-muted-foreground">Track your feedback performance and trends</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -127,25 +113,13 @@ export function AnalyticsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <ResponseTrendChart
-          data={last30Days}
-          title="Response Trend (Last 30 Days)"
-        />
-        <NPSTrendChart
-          data={last30Days}
-          title="NPS Trend (Last 30 Days)"
-        />
+        <ResponseTrendChart data={last30Days} title="Response Trend (Last 30 Days)" />
+        <NPSTrendChart data={last30Days} title="NPS Trend (Last 30 Days)" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <RatingDistributionChart
-          data={ratingDistribution}
-          title="Rating Distribution"
-        />
-        <LocationPerformanceChart
-          data={locationPerformance}
-          title="Location Performance"
-        />
+        <RatingDistributionChart data={ratingDistribution} title="Rating Distribution" />
+        <LocationPerformanceChart data={locationPerformance} title="Location Performance" />
       </div>
     </div>
   );

@@ -30,7 +30,7 @@ const navigation = [
 export function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
@@ -66,16 +66,13 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Navigation */}
       <div className="container mx-auto px-4 py-4">
         <nav className="flex space-x-1">
-          {navigation.map((item) => {
+          {navigation.map(item => {
             const isActive = location.pathname === item.href;
             return (
               <Button
                 key={item.name}
                 variant={isActive ? 'default' : 'ghost'}
-                className={cn(
-                  'flex items-center space-x-2',
-                  isActive && 'shadow-sm'
-                )}
+                className={cn('flex items-center space-x-2', isActive && 'shadow-sm')}
                 onClick={() => navigate(item.href)}
               >
                 <item.icon className="h-4 w-4" />
@@ -87,9 +84,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </div>
 
       {/* Main content */}
-      <main className="container mx-auto px-4 py-8">
-        {children}
-      </main>
+      <main className="container mx-auto px-4 py-8">{children}</main>
 
       {/* Footer */}
       <footer className="border-t bg-card/50">

@@ -98,7 +98,7 @@ export function UsersTable() {
     }
   };
 
-  const handleEdit = (user: typeof users[0]) => {
+  const handleEdit = (user: (typeof users)[0]) => {
     setEditingId(user.id);
     form.reset({
       email: user.email,
@@ -121,14 +121,12 @@ export function UsersTable() {
   };
 
   const handleSelect = (id: string, checked: boolean) => {
-    setSelectedIds(prev => 
-      checked ? [...prev, id] : prev.filter(i => i !== id)
-    );
+    setSelectedIds(prev => (checked ? [...prev, id] : prev.filter(i => i !== id)));
   };
 
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return;
-    
+
     if (confirm(`Are you sure you want to delete ${selectedIds.length} users?`)) {
       try {
         await Promise.all(selectedIds.map(id => deleteUser.mutateAsync(id)));
@@ -153,12 +151,7 @@ export function UsersTable() {
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-semibold">Users</h2>
           {selectedIds.length > 0 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDeleteSelected}
-              className="h-8"
-            >
+            <Button variant="destructive" size="sm" onClick={handleDeleteSelected} className="h-8">
               Delete Selected ({selectedIds.length})
             </Button>
           )}
@@ -184,10 +177,7 @@ export function UsersTable() {
                       <FormItem>
                         <FormLabel>First Name</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Enter first name"
-                            {...field}
-                          />
+                          <Input placeholder="Enter first name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -200,10 +190,7 @@ export function UsersTable() {
                       <FormItem>
                         <FormLabel>Last Name</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Enter last name"
-                            {...field}
-                          />
+                          <Input placeholder="Enter last name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -216,11 +203,7 @@ export function UsersTable() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="Enter email address"
-                            {...field}
-                          />
+                          <Input type="email" placeholder="Enter email address" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -233,11 +216,7 @@ export function UsersTable() {
                       <FormItem>
                         <FormLabel>Phone Number</FormLabel>
                         <FormControl>
-                          <Input
-                            type="tel"
-                            placeholder="Enter phone number"
-                            {...field}
-                          />
+                          <Input type="tel" placeholder="Enter phone number" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -250,10 +229,7 @@ export function UsersTable() {
                       <FormItem>
                         <FormLabel>Role</FormLabel>
                         <FormControl>
-                          <RoleSelect
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
+                          <RoleSelect value={field.value} onChange={field.onChange} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -272,7 +248,7 @@ export function UsersTable() {
                             onChange={field.onChange}
                           >
                             <option value="">Select a location</option>
-                            {locations.map((location) => (
+                            {locations.map(location => (
                               <option key={location.id} value={location.id}>
                                 {location.name}
                               </option>
@@ -294,12 +270,15 @@ export function UsersTable() {
                             className="w-full rounded-md border border-input bg-background px-3 py-2"
                             multiple
                             value={field.value}
-                            onChange={(e) => {
-                              const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                            onChange={e => {
+                              const selectedOptions = Array.from(
+                                e.target.selectedOptions,
+                                option => option.value
+                              );
                               field.onChange(selectedOptions);
                             }}
                           >
-                            {groups.map((group) => (
+                            {groups.map(group => (
                               <option key={group.id} value={group.id}>
                                 {group.name}
                               </option>
@@ -353,16 +332,18 @@ export function UsersTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map((user) => (
+          {users.map(user => (
             <TableRow key={user.id}>
               <TableCell>
                 <Checkbox
                   checked={selectedIds.includes(user.id)}
-                  onCheckedChange={(checked) => handleSelect(user.id, !!checked)}
+                  onCheckedChange={checked => handleSelect(user.id, !!checked)}
                   aria-label={`Select ${user.email}`}
                 />
               </TableCell>
-              <TableCell>{user.first_name} {user.last_name}</TableCell>
+              <TableCell>
+                {user.first_name} {user.last_name}
+              </TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.phone_number}</TableCell>
               <TableCell>
@@ -370,9 +351,7 @@ export function UsersTable() {
                   {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                 </Badge>
               </TableCell>
-              <TableCell>
-                {locations.find((l) => l.id === user.location_id)?.name}
-              </TableCell>
+              <TableCell>{locations.find(l => l.id === user.location_id)?.name}</TableCell>
               <TableCell>{user.groups.length} groups</TableCell>
               <TableCell>
                 {canManageUsers && (
@@ -401,15 +380,12 @@ export function UsersTable() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete User</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to delete this user? This action
-                            cannot be undone.
+                            Are you sure you want to delete this user? This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(user.id)}
-                          >
+                          <AlertDialogAction onClick={() => handleDelete(user.id)}>
                             Delete
                           </AlertDialogAction>
                         </AlertDialogFooter>

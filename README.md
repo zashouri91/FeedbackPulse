@@ -26,6 +26,7 @@ A real-time feedback collection and analysis system.
 ## Default Credentials
 
 After running migrations and seeds, you can log in with:
+
 - Email: admin@example.com
 - Password: admin123
 

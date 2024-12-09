@@ -11,9 +11,7 @@ export function SurveyStatus({ createdAt, responseCount }: SurveyStatusProps) {
 
   return (
     <div className="flex items-center gap-4">
-      <Badge variant={isActive ? 'default' : 'secondary'}>
-        {isActive ? 'Active' : 'Expired'}
-      </Badge>
+      <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Expired'}</Badge>
       <span className="text-sm text-muted-foreground">
         Created {format(new Date(createdAt), 'MMM d, yyyy')}
       </span>

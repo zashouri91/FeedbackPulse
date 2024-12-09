@@ -5,28 +5,19 @@ import { toast } from 'sonner';
 export function useGroups() {
   const queryClient = useQueryClient();
 
-  const groupsQuery = useQuery({
+  const { data: groups = [], isLoading } = useQuery({
     queryKey: ['groups'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('groups')
-        .select('*')
-        .order('name');
-      
+      const { data, error } = await supabase.from('groups').select('*').order('name');
+
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
   const createGroup = useMutation({
-    mutationFn: async (data: {
-      name: string;
-      manager_id: string;
-      location_id: string;
-    }) => {
-      const { error } = await supabase
-        .from('groups')
-        .insert([data]);
+    mutationFn: async (data: { name: string; manager_id: string; location_id: string }) => {
+      const { error } = await supabase.from('groups').insert([data]);
 
       if (error) throw error;
     },
@@ -41,10 +32,7 @@ export function useGroups() {
 
   const updateGroup = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; [key: string]: any }) => {
-      const { error } = await supabase
-        .from('groups')
-        .update(data)
-        .eq('id', id);
+      const { error } = await supabase.from('groups').update(data).eq('id', id);
 
       if (error) throw error;
     },
@@ -59,10 +47,7 @@ export function useGroups() {
 
   const deleteGroup = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('groups')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('groups').delete().eq('id', id);
 
       if (error) throw error;
     },
@@ -76,8 +61,8 @@ export function useGroups() {
   });
 
   return {
-    groups: groupsQuery.data ?? [],
-    isLoading: groupsQuery.isLoading,
+    groups,
+    isLoading,
     createGroup,
     updateGroup,
     deleteGroup,

@@ -6,14 +6,12 @@ import { ProfileSettings } from '@/components/settings/profile-settings';
 import { NotificationSettings } from '@/components/settings/notification-settings';
 import { SecuritySettings } from '@/components/settings/security-settings';
 
-export function SettingsPage() {
+export default function SettingsPage() {
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-3xl font-bold mb-2">Settings</h2>
-        <p className="text-muted-foreground">
-          Manage your account and application preferences
-        </p>
+        <p className="text-muted-foreground">Manage your account and application preferences</p>
       </div>
 
       <Tabs defaultValue="profile">

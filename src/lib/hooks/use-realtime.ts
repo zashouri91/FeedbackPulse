@@ -17,21 +17,24 @@ export function useRealtimeSubscription({
   onDelete,
   filter,
 }: RealtimeSubscription) {
-  const handleChange = useCallback((payload: any) => {
-    const { eventType, new: newRecord, old: oldRecord } = payload;
+  const handleChange = useCallback(
+    (payload: any) => {
+      const { eventType, new: newRecord, old: oldRecord } = payload;
 
-    switch (eventType) {
-      case 'INSERT':
-        onInsert?.(newRecord);
-        break;
-      case 'UPDATE':
-        onUpdate?.(newRecord);
-        break;
-      case 'DELETE':
-        onDelete?.(oldRecord);
-        break;
-    }
-  }, [onInsert, onUpdate, onDelete]);
+      switch (eventType) {
+        case 'INSERT':
+          onInsert?.(newRecord);
+          break;
+        case 'UPDATE':
+          onUpdate?.(newRecord);
+          break;
+        case 'DELETE':
+          onDelete?.(oldRecord);
+          break;
+      }
+    },
+    [onInsert, onUpdate, onDelete]
+  );
 
   useEffect(() => {
     const channel = supabase
@@ -46,7 +49,7 @@ export function useRealtimeSubscription({
         },
         handleChange
       )
-      .subscribe((status) => {
+      .subscribe(status => {
         if (status === 'SUBSCRIBED') {
           toast.success(`Connected to ${table} updates`);
         }

@@ -1,13 +1,5 @@
 import { Card } from '@/components/ui/card';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { calculateNPS, getNPSCategory } from '@/lib/utils/nps';
 
 type Response = {
@@ -20,13 +12,13 @@ type SurveyAnalyticsProps = {
 };
 
 export function SurveyAnalytics({ responses }: SurveyAnalyticsProps) {
-  const ratings = responses.map((r) => r.rating);
+  const ratings = responses.map(r => r.rating);
   const npsScore = calculateNPS(ratings);
   const npsCategory = getNPSCategory(npsScore);
 
   const ratingDistribution = Array.from({ length: 5 }, (_, i) => ({
     rating: i + 1,
-    count: ratings.filter((r) => r === i + 1).length,
+    count: ratings.filter(r => r === i + 1).length,
   }));
 
   return (
@@ -53,11 +45,7 @@ export function SurveyAnalytics({ responses }: SurveyAnalyticsProps) {
               <XAxis dataKey="rating" />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Bar
-                dataKey="count"
-                fill="hsl(var(--primary))"
-                radius={[4, 4, 0, 0]}
-              />
+              <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

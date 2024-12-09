@@ -22,7 +22,7 @@ interface SurveyTemplate {
   follow_up_message: string;
 }
 
-export function SurveyPage() {
+export default function SurveyPage() {
   const { templateId } = useParams();
   const navigate = useNavigate();
   const [template, setTemplate] = useState<SurveyTemplate | null>(null);
@@ -37,11 +37,7 @@ export function SurveyPage() {
       if (!templateId) return;
 
       const [templateResult, driversResult] = await Promise.all([
-        supabase
-          .from('survey_templates')
-          .select('*')
-          .eq('id', templateId)
-          .single(),
+        supabase.from('survey_templates').select('*').eq('id', templateId).single(),
         supabase
           .from('response_drivers')
           .select('*')
@@ -74,17 +70,12 @@ export function SurveyPage() {
   };
 
   const handleDriverSelect = (driverId: string) => {
-    setSelectedDrivers((prev) =>
-      prev.includes(driverId)
-        ? prev.filter((id) => id !== driverId)
-        : [...prev, driverId]
+    setSelectedDrivers(prev =>
+      prev.includes(driverId) ? prev.filter(id => id !== driverId) : [...prev, driverId]
     );
   };
 
-  const submitResponse = async (
-    finalRating: number,
-    finalDrivers: string[]
-  ) => {
+  const submitResponse = async (finalRating: number, finalDrivers: string[]) => {
     if (!templateId) return;
 
     const { error } = await supabase.from('survey_responses').insert({
@@ -114,9 +105,7 @@ export function SurveyPage() {
       <Card className="w-full max-w-lg p-6 space-y-6">
         {step === 'rating' && (
           <>
-            <h1 className="text-2xl font-bold text-center">
-              How would you rate your experience?
-            </h1>
+            <h1 className="text-2xl font-bold text-center">How would you rate your experience?</h1>
             <RatingSelector
               type={template.rating_type}
               min={template.scale_min}
@@ -129,11 +118,9 @@ export function SurveyPage() {
 
         {step === 'drivers' && (
           <>
-            <h2 className="text-xl font-semibold text-center">
-              {template.follow_up_message}
-            </h2>
+            <h2 className="text-xl font-semibold text-center">{template.follow_up_message}</h2>
             <div className="grid grid-cols-2 gap-4 my-6">
-              {drivers.map((driver) => (
+              {drivers.map(driver => (
                 <Button
                   key={driver.id}
                   variant={selectedDrivers.includes(driver.id) ? 'default' : 'outline'}
@@ -149,13 +136,10 @@ export function SurveyPage() {
                 type="email"
                 placeholder="Email (optional)"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 className="w-full p-2 border rounded"
               />
-              <Button
-                onClick={handleSubmitDrivers}
-                className="w-full"
-              >
+              <Button onClick={handleSubmitDrivers} className="w-full">
                 Submit
               </Button>
             </div>
@@ -165,9 +149,7 @@ export function SurveyPage() {
         {step === 'thank-you' && (
           <div className="text-center space-y-4">
             <h2 className="text-2xl font-bold">{template.thank_you_message}</h2>
-            <p className="text-muted-foreground">
-              Your feedback helps us improve our service.
-            </p>
+            <p className="text-muted-foreground">Your feedback helps us improve our service.</p>
           </div>
         )}
       </Card>

@@ -81,11 +81,7 @@ export function SurveyLinkGenerator({ templateId, assigneeName }: SurveyLinkGene
             <div className="bg-muted p-4 rounded-md">
               <div dangerouslySetInnerHTML={{ __html: emailSignature }} />
             </div>
-            <Button
-              variant="outline"
-              onClick={() => handleCopy(emailSignature)}
-              className="w-full"
-            >
+            <Button variant="outline" onClick={() => handleCopy(emailSignature)} className="w-full">
               <CopyIcon className="h-4 w-4 mr-2" />
               Copy HTML Signature
             </Button>

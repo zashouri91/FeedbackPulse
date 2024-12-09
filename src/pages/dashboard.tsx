@@ -21,7 +21,7 @@ import { ResponseTrendChart } from '@/components/charts/response-trend-chart';
 import { RatingDistributionChart } from '@/components/charts/rating-distribution-chart';
 import { format, subDays } from 'date-fns';
 
-export function Dashboard() {
+export default function Dashboard() {
   const { user } = useAuth();
   const { surveys, isLoading, error } = useSurveys();
   const userRole = getUserRole(user!);
@@ -44,22 +44,17 @@ export function Dashboard() {
   }
 
   // Calculate metrics
-  const totalResponses = surveys.reduce(
-    (acc, survey) => acc + (survey.responses?.length || 0),
-    0
-  );
+  const totalResponses = surveys.reduce((acc, survey) => acc + (survey.responses?.length || 0), 0);
   const activeSurveys = surveys.length;
-  const locations = new Set(surveys.map((s) => s.location_id)).size;
-  const averageNPS = calculateNPS(
-    surveys.flatMap((s) => s.responses?.map((r) => r.rating) || [])
-  );
+  const locations = new Set(surveys.map(s => s.location_id)).size;
+  const averageNPS = calculateNPS(surveys.flatMap(s => s.responses?.map(r => r.rating) || []));
 
   // Prepare chart data
   const last30Days = Array.from({ length: 30 }, (_, i) => {
     const date = subDays(new Date(), i);
-    const responses = surveys.flatMap((s) =>
+    const responses = surveys.flatMap(s =>
       (s.responses || []).filter(
-        (r) => format(new Date(r.timestamp), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+        r => format(new Date(r.timestamp), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
       )
     );
     return {
@@ -70,9 +65,7 @@ export function Dashboard() {
 
   const ratingDistribution = Array.from({ length: 5 }, (_, i) => ({
     rating: i + 1,
-    count: surveys
-      .flatMap((s) => s.responses || [])
-      .filter((r) => r.rating === i + 1).length,
+    count: surveys.flatMap(s => s.responses || []).filter(r => r.rating === i + 1).length,
   }));
 
   // Role-specific metrics
@@ -144,12 +137,12 @@ export function Dashboard() {
     user: [
       {
         title: 'My Surveys',
-        value: surveys.filter((s) => s.assignee_id === user?.id).length,
+        value: surveys.filter(s => s.assignee_id === user?.id).length,
         icon: CheckCircleIcon,
       },
       {
         title: 'Pending Responses',
-        value: surveys.filter((s) => !s.responses?.length).length,
+        value: surveys.filter(s => !s.responses?.length).length,
         icon: AlertCircleIcon,
       },
     ],
@@ -162,9 +155,7 @@ export function Dashboard() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Welcome back, {user?.email}
-          </p>
+          <p className="text-muted-foreground">Welcome back, {user?.email}</p>
         </div>
         {(userRole === 'admin' || userRole === 'super_admin') && <CreateSurvey />}
       </div>
@@ -176,14 +167,8 @@ export function Dashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <ResponseTrendChart
-          data={last30Days}
-          title="Response Trend (Last 30 Days)"
-        />
-        <RatingDistributionChart
-          data={ratingDistribution}
-          title="Rating Distribution"
-        />
+        <ResponseTrendChart data={last30Days} title="Response Trend (Last 30 Days)" />
+        <RatingDistributionChart data={ratingDistribution} title="Rating Distribution" />
       </div>
 
       {surveys.length > 0 && (userRole === 'admin' || userRole === 'super_admin') && (
@@ -196,11 +181,8 @@ export function Dashboard() {
             </Button>
           </div>
           <div className="grid gap-4">
-            {surveys.slice(0, 5).map((survey) => (
-              <Card
-                key={survey.id}
-                className="p-6 hover:shadow-lg transition-shadow"
-              >
+            {surveys.slice(0, 5).map(survey => (
+              <Card key={survey.id} className="p-6 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-medium">Survey #{survey.id}</p>

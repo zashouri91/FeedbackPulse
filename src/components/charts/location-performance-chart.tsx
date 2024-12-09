@@ -22,9 +22,7 @@ interface LocationPerformanceChartProps {
 export function LocationPerformanceChart({ data, title }: LocationPerformanceChartProps) {
   return (
     <Card className="p-6">
-      {title && (
-        <h3 className="text-lg font-semibold mb-4">{title}</h3>
-      )}
+      {title && <h3 className="text-lg font-semibold mb-4">{title}</h3>}
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>

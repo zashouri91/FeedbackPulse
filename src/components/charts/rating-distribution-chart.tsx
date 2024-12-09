@@ -1,12 +1,4 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
 
 interface RatingDistributionChartProps {
@@ -20,9 +12,7 @@ interface RatingDistributionChartProps {
 export function RatingDistributionChart({ data, title }: RatingDistributionChartProps) {
   return (
     <Card className="p-6">
-      {title && (
-        <h3 className="text-lg font-semibold mb-4">{title}</h3>
-      )}
+      {title && <h3 className="text-lg font-semibold mb-4">{title}</h3>}
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
@@ -31,13 +21,9 @@ export function RatingDistributionChart({ data, title }: RatingDistributionChart
             <YAxis allowDecimals={false} />
             <Tooltip
               formatter={(value: number) => [value, 'Responses']}
-              labelFormatter={(value) => `Rating: ${value}`}
+              labelFormatter={value => `Rating: ${value}`}
             />
-            <Bar
-              dataKey="count"
-              fill="hsl(var(--primary))"
-              radius={[4, 4, 0, 0]}
-            />
+            <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

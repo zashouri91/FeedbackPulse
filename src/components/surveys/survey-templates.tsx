@@ -68,9 +68,7 @@ export function SurveyTemplates() {
                 <Input
                   id="name"
                   value={newTemplate.name}
-                  onChange={(e) =>
-                    setNewTemplate({ ...newTemplate, name: e.target.value })
-                  }
+                  onChange={e => setNewTemplate({ ...newTemplate, name: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -78,9 +76,7 @@ export function SurveyTemplates() {
                 <Input
                   id="description"
                   value={newTemplate.description}
-                  onChange={(e) =>
-                    setNewTemplate({ ...newTemplate, description: e.target.value })
-                  }
+                  onChange={e => setNewTemplate({ ...newTemplate, description: e.target.value })}
                 />
               </div>
               <Button onClick={handleSaveTemplate} className="w-full">
@@ -93,15 +89,10 @@ export function SurveyTemplates() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        {templates.map((template) => (
-          <Card
-            key={template.id}
-            className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
-          >
+        {templates.map(template => (
+          <Card key={template.id} className="p-4 hover:shadow-lg transition-shadow cursor-pointer">
             <h4 className="font-medium mb-2">{template.name}</h4>
-            <p className="text-sm text-muted-foreground">
-              {template.description}
-            </p>
+            <p className="text-sm text-muted-foreground">{template.description}</p>
           </Card>
         ))}
       </div>

@@ -1,8 +1,8 @@
 export function calculateNPS(ratings: number[]): number {
   if (ratings.length === 0) return 0;
 
-  const promoters = ratings.filter((r) => r >= 4).length;
-  const detractors = ratings.filter((r) => r <= 2).length;
+  const promoters = ratings.filter(r => r >= 4).length;
+  const detractors = ratings.filter(r => r <= 2).length;
   const total = ratings.length;
 
   return Math.round(((promoters - detractors) / total) * 100);

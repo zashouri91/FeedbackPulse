@@ -13,22 +13,19 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PlusIcon, SaveIcon } from 'lucide-react';
 
 const templateSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string(),
-  questions: z.array(z.object({
-    type: z.string(),
-    text: z.string(),
-    required: z.boolean(),
-  })),
+  questions: z.array(
+    z.object({
+      type: z.string(),
+      text: z.string(),
+      required: z.boolean(),
+    })
+  ),
 });
 
 type TemplateForm = z.infer<typeof templateSchema>;
@@ -40,12 +37,7 @@ interface TemplateEditorProps {
   initialData?: Partial<TemplateForm>;
 }
 
-export function TemplateEditor({
-  open,
-  onOpenChange,
-  onSave,
-  initialData,
-}: TemplateEditorProps) {
+export function TemplateEditor({ open, onOpenChange, onSave, initialData }: TemplateEditorProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<TemplateForm>({
@@ -72,9 +64,7 @@ export function TemplateEditor({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>
-            {initialData ? 'Edit Template' : 'Create Template'}
-          </DialogTitle>
+          <DialogTitle>{initialData ? 'Edit Template' : 'Create Template'}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -100,11 +90,7 @@ export function TemplateEditor({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Enter template description"
-                      rows={3}
-                    />
+                    <Textarea {...field} placeholder="Enter template description" rows={3} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -150,11 +136,7 @@ export function TemplateEditor({
             </div>
 
             <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>

@@ -6,7 +6,7 @@ import { AuthProvider } from '@/components/auth-provider';
 
 const queryClient = new QueryClient();
 
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="feedback-pulse-theme">
@@ -18,5 +18,3 @@ function App() {
     </QueryClientProvider>
   );
 }
-
-export default App;

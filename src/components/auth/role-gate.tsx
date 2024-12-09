@@ -11,17 +11,19 @@ interface RoleGateProps {
 
 export function RoleGate({ children, allowedRoles, fallback }: RoleGateProps) {
   const { user } = useAuth();
-  
+
   const hasAccess = allowedRoles.some(role => hasRole(user, role));
-  
+
   if (!hasAccess) {
-    return fallback || (
-      <ErrorCard
-        title="Access Denied"
-        description="You don't have permission to access this resource."
-      />
+    return (
+      fallback || (
+        <ErrorCard
+          title="Access Denied"
+          description="You don't have permission to access this resource."
+        />
+      )
     );
   }
-  
+
   return <>{children}</>;
 }

@@ -23,7 +23,7 @@ export function RatingSelector({ type, min, max, onSelect, className }: RatingSe
 
   return (
     <div className={cn('flex gap-2 justify-center', className)}>
-      {items.map((rating) => (
+      {items.map(rating => (
         <button
           key={rating}
           onClick={() => onSelect(rating)}

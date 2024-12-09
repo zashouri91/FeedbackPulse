@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 interface ResponseDriver {
   id: string;
@@ -24,6 +25,7 @@ interface SurveyTemplate {
   assigned_users: string[];
   assigned_groups: string[];
   assigned_locations: string[];
+  response_drivers: ResponseDriver[];
 }
 
 interface CreateTemplateData {
@@ -34,9 +36,9 @@ interface CreateTemplateData {
   scale_max: number;
   thank_you_message: string;
   follow_up_message: string;
-  assigned_users?: string[];
-  assigned_groups?: string[];
-  assigned_locations?: string[];
+  assigned_users: string[];
+  assigned_groups: string[];
+  assigned_locations: string[];
 }
 
 interface SurveyResponse {
@@ -54,10 +56,8 @@ export function useSurveys() {
   const surveysQuery = useQuery({
     queryKey: ['surveys'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('surveys')
-        .select('*, responses(*)');
-      
+      const { data, error } = await supabase.from('surveys').select('*, responses(*)');
+
       if (error) throw error;
       return data;
     },
@@ -66,23 +66,63 @@ export function useSurveys() {
   const templatesQuery = useQuery({
     queryKey: ['survey_templates'],
     queryFn: async () => {
+      console.log('Fetching templates...');
       const { data, error } = await supabase
         .from('survey_templates')
-        .select('*')
+        .select(
+          `
+          *,
+          response_drivers (
+            id,
+            name,
+            description,
+            order_index
+          )
+        `
+        )
         .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as SurveyTemplate[];
+
+      if (error) {
+        console.error('Error fetching templates:', error);
+        throw error;
+      }
+
+      console.log('Templates fetched:', data);
+      return data || [];
     },
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache
   });
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('survey_templates_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'survey_templates',
+        },
+        payload => {
+          console.log('Real-time update:', payload);
+          // Force a refetch when any change occurs
+          queryClient.invalidateQueries({ queryKey: ['survey_templates'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const createSurvey = useMutation({
-    mutationFn: async (data: {
-      assignee_id: string;
-      group_id: string;
-      location_id: string;
-    }) => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+    mutationFn: async (data: { assignee_id: string; group_id: string; location_id: string }) => {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError) throw new Error('Failed to get current user');
       if (!user) throw new Error('No authenticated user found');
 
@@ -102,7 +142,7 @@ export function useSurveys() {
       queryClient.invalidateQueries({ queryKey: ['surveys'] });
       toast.success('Survey created successfully');
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Survey creation error:', error);
       toast.error(error.message);
     },
@@ -110,7 +150,10 @@ export function useSurveys() {
 
   const createTemplate = useMutation({
     mutationFn: async (data: CreateTemplateData) => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError) throw new Error('Failed to get current user');
       if (!user) throw new Error('No authenticated user found');
 
@@ -122,9 +165,7 @@ export function useSurveys() {
         assigned_locations: data.assigned_locations || [],
       };
 
-      const { error } = await supabase
-        .from('survey_templates')
-        .insert([templateData]);
+      const { error } = await supabase.from('survey_templates').insert([templateData]);
 
       if (error) {
         console.error('Error creating template:', error);
@@ -135,7 +176,7 @@ export function useSurveys() {
       queryClient.invalidateQueries({ queryKey: ['survey_templates'] });
       toast.success('Template created successfully');
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Template creation error:', error);
       toast.error(error.message);
     },
@@ -143,60 +184,82 @@ export function useSurveys() {
 
   const updateTemplate = useMutation({
     mutationFn: async ({ id, ...data }: CreateTemplateData & { id: string }) => {
+      // First, verify the template exists
+      const { data: existing, error: fetchError } = await supabase
+        .from('survey_templates')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (fetchError || !existing) {
+        console.error('Template not found:', id);
+        throw new Error('Template not found');
+      }
+
       const templateData = {
         ...data,
         assigned_users: data.assigned_users || [],
         assigned_groups: data.assigned_groups || [],
         assigned_locations: data.assigned_locations || [],
+        updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from('survey_templates')
         .update(templateData)
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
 
       if (error) {
         console.error('Error updating template:', error);
-        throw new Error(`Failed to update template: ${error.message}`);
+        throw error;
       }
+
+      console.log('Template updated successfully:', updated);
+      return updated;
     },
-    onSuccess: () => {
+    onSuccess: updatedTemplate => {
+      // Immediately update the cache
+      queryClient.setQueryData(['survey_templates'], (old: any[]) => {
+        if (!old) return [updatedTemplate];
+        return old.map(t => (t.id === updatedTemplate.id ? updatedTemplate : t));
+      });
+
+      // Force a refetch to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['survey_templates'] });
       toast.success('Template updated successfully');
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Template update error:', error);
-      toast.error(error.message);
+      toast.error('Failed to update template');
     },
   });
 
   const deleteTemplate = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('survey_templates')
-        .delete()
-        .eq('id', id);
+      console.log('Deleting template:', id);
+
+      // Delete the template
+      const { error } = await supabase.from('survey_templates').delete().eq('id', id);
 
       if (error) {
         console.error('Error deleting template:', error);
-        throw new Error(`Failed to delete template: ${error.message}`);
+        throw error;
       }
+
+      console.log('Template deleted successfully:', id);
+      return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['survey_templates'] });
-      toast.success('Template deleted successfully');
-    },
-    onError: (error) => {
+    onError: error => {
       console.error('Template deletion error:', error);
-      toast.error(error.message);
+      toast.error('Failed to delete template');
     },
   });
 
   const submitResponse = useMutation({
     mutationFn: async (data: Omit<SurveyResponse, 'id' | 'created_at'>) => {
-      const { error } = await supabase
-        .from('survey_responses')
-        .insert([data]);
+      const { error } = await supabase.from('survey_responses').insert([data]);
 
       if (error) throw error;
     },

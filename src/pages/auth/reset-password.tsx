@@ -13,45 +13,51 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useAuthActions } from '@/lib/hooks/use-auth';
-import { MailIcon, ArrowLeftIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useAuth } from '@/components/auth-provider';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-const resetSchema = z.object({
+const resetPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
-type ResetForm = z.infer<typeof resetSchema>;
+type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
-export function ResetPasswordPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { resetPassword } = useAuthActions();
+export default function ResetPasswordPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const { resetPassword } = useAuth();
+  const navigate = useNavigate();
 
-  const form = useForm<ResetForm>({
-    resolver: zodResolver(resetSchema),
+  const form = useForm<ResetPasswordForm>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      email: '',
+    },
   });
 
-  const onSubmit = async (data: ResetForm) => {
+  const onSubmit = async (data: ResetPasswordForm) => {
     try {
-      setIsSubmitting(true);
+      setIsLoading(true);
       await resetPassword(data.email);
+      toast.success('Password reset email sent');
+      navigate('/');
+    } catch (error) {
+      toast.error('Failed to send reset email');
+      console.error(error);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">Reset Password</h1>
-          <p className="text-muted-foreground">
-            Enter your email address and we'll send you instructions to reset your password.
-          </p>
-        </div>
-
+    <div className="min-h-screen grid place-items-center bg-background p-4">
+      <Card className="w-full max-w-md p-6">
+        <h1 className="text-2xl font-bold mb-2">Reset Password</h1>
+        <p className="text-muted-foreground mb-6">
+          Enter your email address and we'll send you a link to reset your password.
+        </p>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="email"
@@ -59,36 +65,31 @@ export function ResetPasswordPage() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="name@company.com"
-                        className="pl-10"
-                      />
-                      <MailIcon className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                    </div>
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              Send Reset Instructions
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Sending...' : 'Send Reset Link'}
             </Button>
-
-            <div className="text-center">
-              <Link
-                to="/"
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                Back to Sign In
-              </Link>
-            </div>
           </form>
         </Form>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Remember your password?{' '}
+          <Button
+            variant="link"
+            className="p-0 h-auto"
+            onClick={() => navigate('/')}
+          >
+            Sign in
+          </Button>
+        </p>
       </Card>
     </div>
   );

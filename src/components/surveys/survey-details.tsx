@@ -22,20 +22,14 @@ export function SurveyDetails({ survey }: SurveyDetailsProps) {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold mb-4">Survey Details</h2>
-          <SurveyStatus
-            createdAt={survey.created_at}
-            responseCount={survey.responses.length}
-          />
+          <SurveyStatus createdAt={survey.created_at} responseCount={survey.responses.length} />
         </div>
 
         <Separator />
 
         <div>
           <h3 className="text-lg font-semibold mb-4">Share Survey</h3>
-          <SurveyLinkGenerator
-            surveyId={survey.id}
-            assigneeName={survey.assignee_name}
-          />
+          <SurveyLinkGenerator surveyId={survey.id} assigneeName={survey.assignee_name} />
         </div>
 
         <Separator />

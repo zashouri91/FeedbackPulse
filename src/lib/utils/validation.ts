@@ -29,5 +29,5 @@ export const userSchema = z.object({
   phone_number: z.string().min(1, 'Phone number is required'),
   role: z.enum(['super_admin', 'admin', 'manager', 'user']),
   location_id: z.string().min(1, 'Location is required'),
-  groups: z.array(z.string())
+  groups: z.array(z.string()),
 });

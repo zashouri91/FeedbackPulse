@@ -5,10 +5,7 @@ interface UseAsyncOptions<T> {
   onError?: (error: Error) => void;
 }
 
-export function useAsync<T>(
-  asyncFn: () => Promise<T>,
-  options: UseAsyncOptions<T> = {}
-) {
+export function useAsync<T>(asyncFn: () => Promise<T>, options: UseAsyncOptions<T> = {}) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(false);
