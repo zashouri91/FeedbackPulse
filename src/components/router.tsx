@@ -11,6 +11,8 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { RouteErrorBoundary } from '@/components/error-boundary/route-error-boundary';
 import { QueryErrorBoundary } from '@/components/error-boundary/query-error-boundary';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import SurveyTemplatesPage from '@/pages/survey-templates';
+import { SurveyPage } from '@/components/surveys/survey-page';
 import {
   createBrowserRouter,
   RouterProvider,
@@ -40,6 +42,11 @@ const publicRouter = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
   },
   {
+    path: '/survey/:templateId',
+    element: <SurveyPage />,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
     path: '*',
     element: <Navigate to="/" replace />,
   },
@@ -49,45 +56,49 @@ const privateRouter = createBrowserRouter([
   {
     path: '/',
     element: (
-      <AppLayout>
-        <QueryErrorBoundary>
+      <QueryErrorBoundary>
+        <AppLayout>
           <Outlet />
-        </QueryErrorBoundary>
-      </AppLayout>
+        </AppLayout>
+      </QueryErrorBoundary>
     ),
     errorElement: <RouteErrorBoundary />,
     children: [
       {
-        path: '/',
+        index: true,
         element: <Dashboard />,
       },
       {
-        path: '/management',
+        path: 'management',
         element: <ManagementPage />,
       },
       {
-        path: '/analytics',
+        path: 'analytics',
         element: <AnalyticsPage />,
       },
       {
-        path: '/settings',
+        path: 'settings',
         element: <SettingsPage />,
       },
       {
-        path: '*',
-        element: <Navigate to="/" replace />,
+        path: 'templates',
+        element: <SurveyTemplatesPage />,
       },
     ],
+  },
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
   },
 ]);
 
 export function Router() {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+      <div className="h-screen grid place-items-center">
+        <LoadingSpinner />
       </div>
     );
   }

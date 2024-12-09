@@ -10,6 +10,7 @@ import {
   UsersIcon,
   BarChart3Icon,
   Settings2Icon,
+  FileTextIcon,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboardIcon },
   { name: 'Management', href: '/management', icon: UsersIcon },
   { name: 'Analytics', href: '/analytics', icon: BarChart3Icon },
+  { name: 'Survey Templates', href: '/templates', icon: FileTextIcon },
   { name: 'Settings', href: '/settings', icon: Settings2Icon },
 ];
 
@@ -94,7 +96,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <p className="text-sm text-muted-foreground">
-              © 2024 FeedbackPulse. All rights reserved.
+              2024 FeedbackPulse. All rights reserved.
             </p>
             <div className="flex space-x-4">
               <Button variant="link" size="sm">

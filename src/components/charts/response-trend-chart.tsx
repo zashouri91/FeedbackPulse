@@ -26,16 +26,32 @@ export function ResponseTrendChart({ data, title }: ResponseTrendChartProps) {
       )}
       <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <LineChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
               tickFormatter={(value) => format(new Date(value), 'MMM d')}
+              height={50}
+              tick={{ fontSize: 12 }}
+              tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+              axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
             />
-            <YAxis allowDecimals={false} />
+            <YAxis
+              allowDecimals={false}
+              width={50}
+              tick={{ fontSize: 12 }}
+              tickLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+              axisLine={{ stroke: 'hsl(var(--muted-foreground))' }}
+            />
             <Tooltip
               labelFormatter={(value) => format(new Date(value), 'PPP')}
               formatter={(value: number) => [value, 'Responses']}
+              contentStyle={{
+                backgroundColor: 'hsl(var(--background))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '4px',
+                fontSize: '12px',
+              }}
             />
             <Line
               type="monotone"
@@ -43,6 +59,12 @@ export function ResponseTrendChart({ data, title }: ResponseTrendChartProps) {
               stroke="hsl(var(--primary))"
               strokeWidth={2}
               dot={false}
+              activeDot={{
+                r: 4,
+                fill: 'hsl(var(--primary))',
+                stroke: 'hsl(var(--background))',
+                strokeWidth: 2,
+              }}
             />
           </LineChart>
         </ResponsiveContainer>

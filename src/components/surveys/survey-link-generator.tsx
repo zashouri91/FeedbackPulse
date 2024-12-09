@@ -7,14 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CopyIcon, MailIcon } from 'lucide-react';
 
 type SurveyLinkGeneratorProps = {
-  surveyId: string;
+  templateId: string;
   assigneeName: string;
 };
 
-export function SurveyLinkGenerator({ surveyId, assigneeName }: SurveyLinkGeneratorProps) {
+export function SurveyLinkGenerator({ templateId, assigneeName }: SurveyLinkGeneratorProps) {
   const [copied, setCopied] = useState(false);
   const baseUrl = window.location.origin;
-  const surveyUrl = `${baseUrl}/feedback?id=${surveyId}`;
+  const surveyUrl = `${baseUrl}/survey/${templateId}`;
 
   const emailSignature = `
 <table>
@@ -22,7 +22,13 @@ export function SurveyLinkGenerator({ surveyId, assigneeName }: SurveyLinkGenera
     <td style="padding-top: 20px; border-top: 1px solid #eee;">
       <p style="margin: 0; font-size: 14px; color: #666;">How was your experience with ${assigneeName}?</p>
       <div style="margin-top: 10px;">
-        <a href="${surveyUrl}" style="text-decoration: none; color: #0066cc;">Share your feedback</a>
+        <table cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td align="center" style="padding: 6px 0;">
+              <a href="${surveyUrl}" style="text-decoration: none; color: #0066cc;">Share your feedback</a>
+            </td>
+          </tr>
+        </table>
       </div>
     </td>
   </tr>

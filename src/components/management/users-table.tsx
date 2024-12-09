@@ -46,9 +46,14 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
 
 type UserForm = {
   email: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
   role: Role;
   location_id: string;
   groups: string[];
@@ -57,6 +62,7 @@ type UserForm = {
 export function UsersTable() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { users, isLoading, createUser, updateUser, deleteUser } = useUsers();
   const { locations } = useLocations();
   const { groups } = useGroups();
@@ -66,6 +72,9 @@ export function UsersTable() {
     resolver: zodResolver(userSchema),
     defaultValues: {
       email: '',
+      first_name: '',
+      last_name: '',
+      phone_number: '',
       role: 'user',
       location_id: '',
       groups: [],
@@ -93,6 +102,9 @@ export function UsersTable() {
     setEditingId(user.id);
     form.reset({
       email: user.email,
+      first_name: user.first_name || '',
+      last_name: user.last_name || '',
+      phone_number: user.phone_number || '',
       role: user.role as Role,
       location_id: user.location_id,
       groups: user.groups,
@@ -104,6 +116,31 @@ export function UsersTable() {
     await deleteUser.mutateAsync(id);
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedIds(checked ? users.map(user => user.id) : []);
+  };
+
+  const handleSelect = (id: string, checked: boolean) => {
+    setSelectedIds(prev => 
+      checked ? [...prev, id] : prev.filter(i => i !== id)
+    );
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+    
+    if (confirm(`Are you sure you want to delete ${selectedIds.length} users?`)) {
+      try {
+        await Promise.all(selectedIds.map(id => deleteUser.mutateAsync(id)));
+        setSelectedIds([]);
+        toast.success(`Successfully deleted ${selectedIds.length} users`);
+      } catch (error) {
+        console.error('Error deleting users:', error);
+        toast.error('Failed to delete some users');
+      }
+    }
+  };
+
   const canManageUsers = hasRole('admin') || hasRole('super_admin');
 
   if (isLoading) {
@@ -113,7 +150,19 @@ export function UsersTable() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Users</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold">Users</h2>
+          {selectedIds.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteSelected}
+              className="h-8"
+            >
+              Delete Selected ({selectedIds.length})
+            </Button>
+          )}
+        </div>
         {canManageUsers && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -130,6 +179,38 @@ export function UsersTable() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
                     control={form.control}
+                    name="first_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter first name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="last_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter last name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
@@ -138,6 +219,23 @@ export function UsersTable() {
                           <Input
                             type="email"
                             placeholder="Enter email address"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone_number"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="tel"
+                            placeholder="Enter phone number"
                             {...field}
                           />
                         </FormControl>
@@ -238,17 +336,35 @@ export function UsersTable() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[50px]">
+              <Checkbox
+                checked={selectedIds.length === users.length}
+                onCheckedChange={handleSelectAll}
+                aria-label="Select all"
+              />
+            </TableHead>
+            <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Phone</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>Groups</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {users.map((user) => (
             <TableRow key={user.id}>
+              <TableCell>
+                <Checkbox
+                  checked={selectedIds.includes(user.id)}
+                  onCheckedChange={(checked) => handleSelect(user.id, !!checked)}
+                  aria-label={`Select ${user.email}`}
+                />
+              </TableCell>
+              <TableCell>{user.first_name} {user.last_name}</TableCell>
               <TableCell>{user.email}</TableCell>
+              <TableCell>{user.phone_number}</TableCell>
               <TableCell>
                 <Badge variant="outline">
                   {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
@@ -260,18 +376,25 @@ export function UsersTable() {
               <TableCell>{user.groups.length} groups</TableCell>
               <TableCell>
                 {canManageUsers && (
-                  <div className="flex space-x-2">
+                  <div className="flex items-center justify-end gap-2">
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="sm"
                       onClick={() => handleEdit(user)}
+                      className="h-8 w-8 p-0"
                     >
                       <Pencil2Icon className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        >
                           <TrashIcon className="h-4 w-4" />
+                          <span className="sr-only">Delete</span>
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>

@@ -29,6 +29,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
 
 const locationSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -40,6 +42,7 @@ type LocationForm = z.infer<typeof locationSchema>;
 export function LocationsTable() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { locations, isLoading, createLocation, updateLocation, deleteLocation } =
     useLocations();
 
@@ -51,18 +54,20 @@ export function LocationsTable() {
     },
   });
 
+  const handleClose = () => {
+    setOpen(false);
+    setEditingId(null);
+    form.reset();
+  };
+
   const onSubmit = async (data: LocationForm) => {
     try {
-      console.log('Submitting location data:', data);
       if (editingId) {
         await updateLocation.mutateAsync({ id: editingId, ...data });
       } else {
-        const result = await createLocation.mutateAsync(data);
-        console.log('Location creation result:', result);
+        await createLocation.mutateAsync(data);
       }
-      setOpen(false);
-      setEditingId(null);
-      form.reset();
+      handleClose();
     } catch (error) {
       console.error('Error submitting location:', error);
     }
@@ -75,6 +80,35 @@ export function LocationsTable() {
       managers: location.managers,
     });
     setOpen(true);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedIds(checked ? locations.map((location) => location.id) : []);
+  };
+
+  const handleSelect = (id: string, checked: boolean) => {
+    setSelectedIds((prev) =>
+      checked ? [...prev, id] : prev.filter((i) => i !== id)
+    );
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+
+    if (
+      confirm(`Are you sure you want to delete ${selectedIds.length} locations?`)
+    ) {
+      try {
+        await Promise.all(
+          selectedIds.map((id) => deleteLocation.mutateAsync(id))
+        );
+        setSelectedIds([]);
+        toast.success(`Successfully deleted ${selectedIds.length} locations`);
+      } catch (error) {
+        console.error('Error deleting locations:', error);
+        toast.error('Failed to delete some locations');
+      }
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -90,8 +124,26 @@ export function LocationsTable() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Locations</h2>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold">Locations</h2>
+          {selectedIds.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteSelected}
+              className="h-8"
+            >
+              Delete Selected ({selectedIds.length})
+            </Button>
+          )}
+        </div>
+        <Dialog open={open} onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            handleClose();
+          } else {
+            setOpen(true);
+          }
+        }}>
           <DialogTrigger asChild>
             <Button>
               <PlusIcon className="h-4 w-4 mr-2" />
@@ -121,12 +173,9 @@ export function LocationsTable() {
                 />
                 <div className="flex justify-end space-x-2">
                   <Button
+                    type="button"
                     variant="outline"
-                    onClick={() => {
-                      setOpen(false);
-                      setEditingId(null);
-                      form.reset();
-                    }}
+                    onClick={handleClose}
                   >
                     Cancel
                   </Button>
@@ -141,31 +190,49 @@ export function LocationsTable() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[50px]">
+              <Checkbox
+                checked={selectedIds.length === locations.length}
+                onCheckedChange={handleSelectAll}
+                aria-label="Select all"
+              />
+            </TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Managers</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {locations.map((location) => (
             <TableRow key={location.id}>
+              <TableCell>
+                <Checkbox
+                  checked={selectedIds.includes(location.id)}
+                  onCheckedChange={(checked) => handleSelect(location.id, !!checked)}
+                  aria-label={`Select ${location.name}`}
+                />
+              </TableCell>
               <TableCell>{location.name}</TableCell>
               <TableCell>{location.managers.length}</TableCell>
               <TableCell>
-                <div className="flex space-x-2">
+                <div className="flex items-center justify-end gap-2">
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={() => handleEdit(location)}
+                    className="h-8 w-8 p-0"
                   >
                     <Pencil2Icon className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
                   </Button>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={() => handleDelete(location.id)}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                   >
                     <TrashIcon className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
                   </Button>
                 </div>
               </TableCell>

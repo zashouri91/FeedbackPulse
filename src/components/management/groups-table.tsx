@@ -27,6 +27,7 @@ import {
 import { PlusIcon, Pencil2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { useGroups } from '@/lib/hooks/use-groups';
 import { useLocations } from '@/lib/hooks/use-locations';
+import { useUsers } from '@/lib/hooks/use-users';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,6 +38,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
 
 const groupSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -49,9 +52,10 @@ type GroupForm = z.infer<typeof groupSchema>;
 export function GroupsTable() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { groups, isLoading, createGroup, updateGroup, deleteGroup } = useGroups();
   const { locations } = useLocations();
-
+  const { users } = useUsers();
   const form = useForm<GroupForm>({
     resolver: zodResolver(groupSchema),
     defaultValues: {
@@ -88,6 +92,31 @@ export function GroupsTable() {
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedIds(checked ? groups.map((group) => group.id) : []);
+  };
+
+  const handleSelect = (id: string, checked: boolean) => {
+    setSelectedIds((prev) =>
+      checked ? [...prev, id] : prev.filter((i) => i !== id)
+    );
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return;
+
+    if (confirm(`Are you sure you want to delete ${selectedIds.length} groups?`)) {
+      try {
+        await Promise.all(selectedIds.map((id) => deleteGroup.mutateAsync(id)));
+        setSelectedIds([]);
+        toast.success(`Successfully deleted ${selectedIds.length} groups`);
+      } catch (error) {
+        console.error('Error deleting groups:', error);
+        toast.error('Failed to delete some groups');
+      }
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -95,7 +124,19 @@ export function GroupsTable() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Groups</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold">Groups</h2>
+          {selectedIds.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteSelected}
+              className="h-8"
+            >
+              Delete Selected ({selectedIds.length})
+            </Button>
+          )}
+        </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -155,9 +196,23 @@ export function GroupsTable() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Manager</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Select manager" {...field} />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select manager" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {users.map((user) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.email}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -184,35 +239,53 @@ export function GroupsTable() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[50px]">
+              <Checkbox
+                checked={selectedIds.length === groups.length}
+                onCheckedChange={handleSelectAll}
+                aria-label="Select all"
+              />
+            </TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>Manager</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {groups.map((group) => (
             <TableRow key={group.id}>
+              <TableCell>
+                <Checkbox
+                  checked={selectedIds.includes(group.id)}
+                  onCheckedChange={(checked) => handleSelect(group.id, !!checked)}
+                  aria-label={`Select ${group.name}`}
+                />
+              </TableCell>
               <TableCell>{group.name}</TableCell>
               <TableCell>
                 {locations.find((l) => l.id === group.location_id)?.name}
               </TableCell>
-              <TableCell>{group.manager_id}</TableCell>
+              <TableCell>{users.find((u) => u.id === group.manager_id)?.email}</TableCell>
               <TableCell>
-                <div className="flex space-x-2">
+                <div className="flex items-center justify-end gap-2">
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={() => handleEdit(group)}
+                    className="h-8 w-8 p-0"
                   >
                     <Pencil2Icon className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
                   </Button>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     onClick={() => handleDelete(group.id)}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                   >
                     <TrashIcon className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
                   </Button>
                 </div>
               </TableCell>

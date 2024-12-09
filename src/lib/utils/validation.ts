@@ -24,7 +24,10 @@ export const groupSchema = z.object({
 
 export const userSchema = z.object({
   email: z.string().email('Invalid email address'),
-  role: z.string().min(1, 'Role is required'),
+  first_name: z.string().min(1, 'First name is required'),
+  last_name: z.string().min(1, 'Last name is required'),
+  phone_number: z.string().min(1, 'Phone number is required'),
+  role: z.enum(['super_admin', 'admin', 'manager', 'user']),
   location_id: z.string().min(1, 'Location is required'),
-  groups: z.array(z.string()),
+  groups: z.array(z.string())
 });

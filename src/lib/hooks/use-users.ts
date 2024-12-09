@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { toast } from 'sonner';
 import * as api from '@/lib/api/users';
 
@@ -8,15 +8,7 @@ export function useUsers() {
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
+    queryFn: api.getUsers,
   });
 
   const createUser = useMutation({
@@ -35,13 +27,8 @@ export function useUsers() {
   });
 
   const updateUser = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string } & Parameters<typeof api.createUser>[0]) => {
-      const { error } = await supabase
-        .from('users')
-        .update(data)
-        .eq('id', id);
-
-      if (error) throw error;
+    mutationFn: async ({ id, ...data }) => {
+      return api.updateUser(id, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -55,14 +42,7 @@ export function useUsers() {
   });
 
   const deleteUser = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    },
+    mutationFn: api.deleteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('User deleted successfully');
