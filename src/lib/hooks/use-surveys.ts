@@ -56,42 +56,49 @@ export function useSurveys() {
   const surveysQuery = useQuery({
     queryKey: ['surveys'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('surveys').select('*, responses(*)');
-
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase.from('surveys').select('*, responses(*)');
+        if (error) throw error;
+        return data;
+      } catch (error) {
+        console.error('Error fetching surveys:', error);
+        throw new Error('Failed to fetch surveys. Please try again later.');
+      }
     },
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
   const templatesQuery = useQuery({
     queryKey: ['survey_templates'],
     queryFn: async () => {
-      console.log('Fetching templates...');
-      const { data, error } = await supabase
-        .from('survey_templates')
-        .select(
+      try {
+        const { data, error } = await supabase
+          .from('survey_templates')
+          .select(
+            `
+            *,
+            response_drivers (
+              id,
+              name,
+              description,
+              order_index
+            )
           `
-          *,
-          response_drivers (
-            id,
-            name,
-            description,
-            order_index
           )
-        `
-        )
-        .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false });
 
-      if (error) {
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
         console.error('Error fetching templates:', error);
-        throw error;
+        throw new Error('Failed to fetch survey templates. Please try again later.');
       }
-
-      console.log('Templates fetched:', data);
-      return data || [];
     },
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
   useEffect(() => {
@@ -106,14 +113,20 @@ export function useSurveys() {
         },
         payload => {
           console.log('Real-time update:', payload);
-          // Force a refetch when any change occurs
           queryClient.invalidateQueries({ queryKey: ['survey_templates'] });
+          queryClient.invalidateQueries({ queryKey: ['surveys'] });
         }
       )
-      .subscribe();
+      .subscribe(status => {
+        if (status !== 'SUBSCRIBED') {
+          console.warn('Failed to subscribe to real-time updates:', status);
+        }
+      });
 
     return () => {
-      supabase.removeChannel(channel);
+      channel.unsubscribe().catch(err => {
+        console.warn('Error unsubscribing from real-time updates:', err);
+      });
     };
   }, [queryClient]);
 
@@ -133,18 +146,22 @@ export function useSurveys() {
         },
       ]);
 
-      if (error) {
-        console.error('Error creating survey:', error);
-        throw new Error(`Failed to create survey: ${error.message}`);
+      if (error) throw new Error(`Failed to create survey: ${error.message}`);
+    },
+    onMutate: async newSurvey => {
+      await queryClient.cancelQueries({ queryKey: ['surveys'] });
+      const previousSurveys = queryClient.getQueryData(['surveys']);
+      queryClient.setQueryData(['surveys'], (old: any[] = []) => [...old, { ...newSurvey, id: 'temp-id' }]);
+      return { previousSurveys };
+    },
+    onError: (err, newSurvey, context) => {
+      if (context?.previousSurveys) {
+        queryClient.setQueryData(['surveys'], context.previousSurveys);
       }
+      toast.error('Failed to create survey');
     },
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['surveys'] });
-      toast.success('Survey created successfully');
-    },
-    onError: error => {
-      console.error('Survey creation error:', error);
-      toast.error(error.message);
     },
   });
 
@@ -165,37 +182,37 @@ export function useSurveys() {
         assigned_locations: data.assigned_locations || [],
       };
 
-      const { error } = await supabase.from('survey_templates').insert([templateData]);
+      const { data: newTemplate, error } = await supabase
+        .from('survey_templates')
+        .insert([templateData])
+        .select()
+        .single();
 
-      if (error) {
-        console.error('Error creating template:', error);
-        throw new Error(`Failed to create template: ${error.message}`);
+      if (error) throw new Error(`Failed to create template: ${error.message}`);
+      return newTemplate;
+    },
+    onMutate: async newTemplate => {
+      await queryClient.cancelQueries({ queryKey: ['survey_templates'] });
+      const previousTemplates = queryClient.getQueryData(['survey_templates']);
+      queryClient.setQueryData(['survey_templates'], (old: any[] = []) => [
+        { ...newTemplate, id: 'temp-id', created_at: new Date().toISOString() },
+        ...old,
+      ]);
+      return { previousTemplates };
+    },
+    onError: (err, newTemplate, context) => {
+      if (context?.previousTemplates) {
+        queryClient.setQueryData(['survey_templates'], context.previousTemplates);
       }
+      toast.error('Failed to create template');
     },
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['survey_templates'] });
-      toast.success('Template created successfully');
-    },
-    onError: error => {
-      console.error('Template creation error:', error);
-      toast.error(error.message);
     },
   });
 
   const updateTemplate = useMutation({
     mutationFn: async ({ id, ...data }: CreateTemplateData & { id: string }) => {
-      // First, verify the template exists
-      const { data: existing, error: fetchError } = await supabase
-        .from('survey_templates')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (fetchError || !existing) {
-        console.error('Template not found:', id);
-        throw new Error('Template not found');
-      }
-
       const templateData = {
         ...data,
         assigned_users: data.assigned_users || [],
@@ -211,60 +228,61 @@ export function useSurveys() {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating template:', error);
-        throw error;
-      }
-
-      console.log('Template updated successfully:', updated);
+      if (error) throw new Error(`Failed to update template: ${error.message}`);
       return updated;
     },
-    onSuccess: updatedTemplate => {
-      // Immediately update the cache
-      queryClient.setQueryData(['survey_templates'], (old: any[]) => {
-        if (!old) return [updatedTemplate];
-        return old.map(t => (t.id === updatedTemplate.id ? updatedTemplate : t));
-      });
-
-      // Force a refetch to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ['survey_templates'] });
-      toast.success('Template updated successfully');
+    onMutate: async updatedTemplate => {
+      await queryClient.cancelQueries({ queryKey: ['survey_templates'] });
+      const previousTemplates = queryClient.getQueryData(['survey_templates']);
+      queryClient.setQueryData(['survey_templates'], (old: any[] = []) =>
+        old.map(t => (t.id === updatedTemplate.id ? { ...t, ...updatedTemplate } : t))
+      );
+      return { previousTemplates };
     },
-    onError: error => {
-      console.error('Template update error:', error);
+    onError: (err, updatedTemplate, context) => {
+      if (context?.previousTemplates) {
+        queryClient.setQueryData(['survey_templates'], context.previousTemplates);
+      }
       toast.error('Failed to update template');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['survey_templates'] });
     },
   });
 
   const deleteTemplate = useMutation({
     mutationFn: async (id: string) => {
-      console.log('Deleting template:', id);
-
-      // Delete the template
       const { error } = await supabase.from('survey_templates').delete().eq('id', id);
-
-      if (error) {
-        console.error('Error deleting template:', error);
-        throw error;
-      }
-
-      console.log('Template deleted successfully:', id);
+      if (error) throw new Error(`Failed to delete template: ${error.message}`);
       return id;
     },
-    onError: error => {
-      console.error('Template deletion error:', error);
+    onMutate: async deletedId => {
+      await queryClient.cancelQueries({ queryKey: ['survey_templates'] });
+      const previousTemplates = queryClient.getQueryData(['survey_templates']);
+      queryClient.setQueryData(['survey_templates'], (old: any[] = []) =>
+        old.filter(t => t.id !== deletedId)
+      );
+      return { previousTemplates };
+    },
+    onError: (err, deletedId, context) => {
+      if (context?.previousTemplates) {
+        queryClient.setQueryData(['survey_templates'], context.previousTemplates);
+      }
       toast.error('Failed to delete template');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['survey_templates'] });
     },
   });
 
   const submitResponse = useMutation({
     mutationFn: async (data: Omit<SurveyResponse, 'id' | 'created_at'>) => {
       const { error } = await supabase.from('survey_responses').insert([data]);
-
-      if (error) throw error;
+      if (error) throw new Error(`Failed to submit response: ${error.message}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['survey_responses'] });
+      queryClient.invalidateQueries({ queryKey: ['surveys'] });
       toast.success('Response submitted successfully');
     },
     onError: () => {
@@ -273,13 +291,17 @@ export function useSurveys() {
   });
 
   const getTemplate = async (id: string) => {
+    const cachedTemplates = queryClient.getQueryData<SurveyTemplate[]>(['survey_templates']);
+    const cachedTemplate = cachedTemplates?.find(t => t.id === id);
+    if (cachedTemplate) return cachedTemplate;
+
     const { data, error } = await supabase
       .from('survey_templates')
       .select('*')
       .eq('id', id)
       .single();
 
-    if (error) throw error;
+    if (error) throw new Error(`Failed to fetch template: ${error.message}`);
     return data as SurveyTemplate;
   };
 
@@ -287,11 +309,17 @@ export function useSurveys() {
     surveys: surveysQuery.data ?? [],
     templates: templatesQuery.data ?? [],
     isLoading: surveysQuery.isLoading || templatesQuery.isLoading,
+    isError: surveysQuery.isError || templatesQuery.isError,
+    error: surveysQuery.error || templatesQuery.error,
     createSurvey,
     createTemplate,
     updateTemplate,
     deleteTemplate,
     submitResponse,
     getTemplate,
+    refetch: () => {
+      surveysQuery.refetch();
+      templatesQuery.refetch();
+    },
   };
 }

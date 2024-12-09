@@ -4,8 +4,36 @@ import { useNotifications } from '@/lib/hooks/use-notifications';
 import { format } from 'date-fns';
 import { BellIcon, CheckIcon } from 'lucide-react';
 
-export function NotificationList() {
-  const { notifications, markAsRead } = useNotifications();
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  createdAt: string;
+  read: boolean;
+}
+
+interface NotificationListProps {
+  /** List of notifications to display */
+  notifications: Notification[];
+  /** Maximum number of notifications to show */
+  limit?: number;
+  /** Whether to show unread notifications only */
+  unreadOnly?: boolean;
+  /** Callback when a notification is marked as read */
+  onMarkAsRead?: (id: string) => void;
+  /** Callback when all notifications are marked as read */
+  onMarkAllAsRead?: () => void;
+}
+
+export function NotificationList({ 
+  notifications, 
+  limit = 10, 
+  unreadOnly = false,
+  onMarkAsRead,
+  onMarkAllAsRead 
+}: NotificationListProps) {
+  const { markAsRead } = useNotifications();
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
@@ -37,7 +65,7 @@ export function NotificationList() {
                     <p className="text-sm font-medium">{notification.title}</p>
                     <p className="text-sm text-muted-foreground">{notification.message}</p>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(notification.created_at), 'PPp')}
+                      {format(new Date(notification.createdAt), 'PPp')}
                     </p>
                   </div>
                   {!notification.read && (

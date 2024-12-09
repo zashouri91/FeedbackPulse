@@ -27,7 +27,14 @@ import { useLocations } from '@/lib/hooks/use-locations';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-export function SurveyTemplateEditor({ onSuccess, initialData = null }) {
+interface SurveyTemplateEditorProps {
+  /** Callback function called when the template is successfully saved or updated */
+  onSuccess?: () => void;
+  /** Initial template data for editing. If null, creates a new template */
+  initialData?: SurveyTemplate | null;
+}
+
+export function SurveyTemplateEditor({ onSuccess, initialData = null }: SurveyTemplateEditorProps) {
   const { groups, isLoading: isLoadingGroups } = useGroups();
   const { users, isLoading: isLoadingUsers } = useUsers();
   const { locations, isLoading: isLoadingLocations } = useLocations();

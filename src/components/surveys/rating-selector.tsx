@@ -3,11 +3,19 @@ import { cn } from '@/lib/utils';
 
 type RatingType = 'stars' | 'smileys' | 'emojis' | 'numbers';
 
+/**
+ * Props for the RatingSelector component.
+ */
 interface RatingSelectorProps {
+  /** The type of rating UI to display (numeric, stars, or emoji) */
   type: RatingType;
+  /** The minimum value for the rating scale */
   min: number;
+  /** The maximum value for the rating scale */
   max: number;
+  /** Callback function called when a rating is selected */
   onSelect: (rating: number) => void;
+  /** Additional CSS classes to apply to the component */
   className?: string;
 }
 

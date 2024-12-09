@@ -6,10 +6,15 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CopyIcon, MailIcon } from 'lucide-react';
 
-type SurveyLinkGeneratorProps = {
+/**
+ * Props for the SurveyLinkGenerator component.
+ */
+interface SurveyLinkGeneratorProps {
+  /** The unique identifier of the survey template */
   templateId: string;
+  /** The name of the person being evaluated in the survey */
   assigneeName: string;
-};
+}
 
 export function SurveyLinkGenerator({ templateId, assigneeName }: SurveyLinkGeneratorProps) {
   const [copied, setCopied] = useState(false);

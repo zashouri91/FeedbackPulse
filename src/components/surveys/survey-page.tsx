@@ -22,15 +22,17 @@ interface SurveyTemplate {
   follow_up_message: string;
 }
 
+type SurveyStep = 'rating' | 'drivers' | 'thank-you';
+
 export default function SurveyPage() {
-  const { templateId } = useParams();
+  const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
   const [template, setTemplate] = useState<SurveyTemplate | null>(null);
   const [drivers, setDrivers] = useState<ResponseDriver[]>([]);
   const [rating, setRating] = useState<number | null>(null);
   const [selectedDrivers, setSelectedDrivers] = useState<string[]>([]);
-  const [email, setEmail] = useState('');
-  const [step, setStep] = useState<'rating' | 'drivers' | 'thank-you'>('rating');
+  const [email, setEmail] = useState<string>('');
+  const [step, setStep] = useState<SurveyStep>('rating');
 
   useEffect(() => {
     async function loadSurveyData() {

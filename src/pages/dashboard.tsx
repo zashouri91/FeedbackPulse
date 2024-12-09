@@ -49,26 +49,6 @@ export default function Dashboard() {
   const locations = new Set(surveys.map(s => s.location_id)).size;
   const averageNPS = calculateNPS(surveys.flatMap(s => s.responses?.map(r => r.rating) || []));
 
-  // Prepare chart data
-  const last30Days = Array.from({ length: 30 }, (_, i) => {
-    const date = subDays(new Date(), i);
-    const responses = surveys.flatMap(s =>
-      (s.responses || []).filter(
-        r => format(new Date(r.timestamp), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
-      )
-    );
-    return {
-      date: format(date, 'yyyy-MM-dd'),
-      responses: responses.length,
-    };
-  }).reverse();
-
-  const ratingDistribution = Array.from({ length: 5 }, (_, i) => ({
-    rating: i + 1,
-    count: surveys.flatMap(s => s.responses || []).filter(r => r.rating === i + 1).length,
-  }));
-
-  // Role-specific metrics
   const roleMetrics = {
     super_admin: [
       {
@@ -76,7 +56,7 @@ export default function Dashboard() {
         value: totalResponses,
         icon: BarChart3Icon,
         trend: {
-          value: 12,
+          value: 5,
           isPositive: true,
         },
       },
@@ -121,34 +101,48 @@ export default function Dashboard() {
       {
         title: 'Team Responses',
         value: totalResponses,
-        icon: Users2Icon,
+        icon: BarChart3Icon,
       },
       {
         title: 'Active Surveys',
         value: activeSurveys,
         icon: CheckCircleIcon,
       },
-      {
-        title: 'Response Rate',
-        value: '85%',
-        icon: TrendingUpIcon,
-      },
     ],
     user: [
       {
-        title: 'My Surveys',
-        value: surveys.filter(s => s.assignee_id === user?.id).length,
-        icon: CheckCircleIcon,
+        title: 'My Responses',
+        value: totalResponses,
+        icon: BarChart3Icon,
       },
       {
-        title: 'Pending Responses',
-        value: surveys.filter(s => !s.responses?.length).length,
-        icon: AlertCircleIcon,
+        title: 'Active Surveys',
+        value: activeSurveys,
+        icon: CheckCircleIcon,
       },
     ],
   };
 
   const metrics = roleMetrics[userRole] || roleMetrics.user;
+
+  // Prepare chart data
+  const last30Days = Array.from({ length: 30 }, (_, i) => {
+    const date = subDays(new Date(), i);
+    const responses = surveys.flatMap(s =>
+      (s.responses || []).filter(
+        r => format(new Date(r.timestamp), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+      )
+    );
+    return {
+      date: format(date, 'yyyy-MM-dd'),
+      responses: responses.length,
+    };
+  }).reverse();
+
+  const ratingDistribution = Array.from({ length: 5 }, (_, i) => ({
+    rating: i + 1,
+    count: surveys.flatMap(s => s.responses || []).filter(r => r.rating === i + 1).length,
+  }));
 
   return (
     <div className="space-y-8">
